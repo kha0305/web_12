@@ -222,8 +222,8 @@ async def register(user_data: UserCreate):
     
     await db.users.insert_one(user_dict)
     
-    # If doctor, create profile
-    if user_data.role == UserRole.DOCTOR:
+    # If doctor or department_head, create profile
+    if user_data.role in [UserRole.DOCTOR, UserRole.DEPARTMENT_HEAD]:
         doctor_profile = {
             "user_id": user.id,
             "specialty_id": "",
@@ -232,6 +232,7 @@ async def register(user_data: UserCreate):
             "consultation_fee": 0,
             "available_slots": [],
             "status": "pending",
+            "is_department_head": user_data.role == UserRole.DEPARTMENT_HEAD,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.doctor_profiles.insert_one(doctor_profile)
