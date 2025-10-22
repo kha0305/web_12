@@ -553,11 +553,16 @@ async def admin_get_stats(current_user: dict = Depends(get_current_user)):
         "approved_doctors": approved_doctors
     }
 
-# Admin - Create Admin Account
+# Admin - Create Admin Account with Permissions
 @api_router.post("/admin/create-admin")
 async def create_admin_account(user_data: UserCreate, current_user: dict = Depends(get_current_user)):
     if current_user["role"] != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if current admin has permission to create admins
+    current_permissions = current_user.get("admin_permissions", {})
+    if not current_permissions.get("can_create_admins", False):
+        raise HTTPException(status_code=403, detail="You don't have permission to create admin accounts")
     
     # Force role to be admin
     user_data.role = UserRole.ADMIN
@@ -570,11 +575,23 @@ async def create_admin_account(user_data: UserCreate, current_user: dict = Depen
     # Hash password
     hashed_password = hash_password(user_data.password)
     
+    # Set default permissions if not provided
+    if not user_data.admin_permissions:
+        user_data.admin_permissions = {
+            "can_manage_doctors": True,
+            "can_manage_patients": True,
+            "can_manage_appointments": True,
+            "can_view_stats": True,
+            "can_manage_specialties": True,
+            "can_create_admins": False
+        }
+    
     # Create admin user
     user = User(
         email=user_data.email,
         full_name=user_data.full_name,
-        role=UserRole.ADMIN
+        role=UserRole.ADMIN,
+        admin_permissions=user_data.admin_permissions
     )
     
     user_dict = user.model_dump()
@@ -585,6 +602,71 @@ async def create_admin_account(user_data: UserCreate, current_user: dict = Depen
     
     user_dict.pop("password")
     return {"message": "Admin account created successfully", "user": user_dict}
+
+# Admin - Get All Admins
+@api_router.get("/admin/admins")
+async def get_all_admins(current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    admins = await db.users.find({"role": UserRole.ADMIN}, {"_id": 0, "password": 0}).to_list(1000)
+    return admins
+
+# Admin - Update Admin Permissions
+class UpdatePermissionsRequest(BaseModel):
+    admin_id: str
+    permissions: dict
+
+@api_router.put("/admin/update-permissions")
+async def update_admin_permissions(request: UpdatePermissionsRequest, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if current admin has permission to create admins (implies managing admins)
+    current_permissions = current_user.get("admin_permissions", {})
+    if not current_permissions.get("can_create_admins", False):
+        raise HTTPException(status_code=403, detail="You don't have permission to manage admin accounts")
+    
+    # Prevent admin from modifying their own permissions
+    if request.admin_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot modify your own permissions")
+    
+    # Update permissions
+    result = await db.users.update_one(
+        {"id": request.admin_id, "role": UserRole.ADMIN},
+        {"$set": {"admin_permissions": request.permissions}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    
+    updated_admin = await db.users.find_one({"id": request.admin_id}, {"_id": 0, "password": 0})
+    return {"message": "Permissions updated successfully", "admin": updated_admin}
+
+# Admin - Delete Admin Account
+@api_router.delete("/admin/delete-admin/{admin_id}")
+async def delete_admin_account(admin_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check permission
+    current_permissions = current_user.get("admin_permissions", {})
+    if not current_permissions.get("can_create_admins", False):
+        raise HTTPException(status_code=403, detail="You don't have permission to delete admin accounts")
+    
+    # Prevent self-deletion
+    if admin_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    # Check if target is admin
+    target_admin = await db.users.find_one({"id": admin_id, "role": UserRole.ADMIN})
+    if not target_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    
+    # Delete
+    await db.users.delete_one({"id": admin_id})
+    
+    return {"message": "Admin account deleted successfully"}
 
 # AI Models
 class AIChatMessage(BaseModel):
