@@ -623,7 +623,7 @@ async def update_admin_permissions(request: UpdatePermissionsRequest, current_us
         raise HTTPException(status_code=403, detail="Admin access required")
     
     # Check if current admin has permission to create admins (implies managing admins)
-    current_permissions = current_user.get("admin_permissions", {})
+    current_permissions = current_user.get("admin_permissions") or {}
     if not current_permissions.get("can_create_admins", False):
         raise HTTPException(status_code=403, detail="You don't have permission to manage admin accounts")
     
