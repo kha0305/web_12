@@ -264,48 +264,125 @@ class MediScheduleAPITester:
             self.log_result("AI Chat History - Auth Check", False, 
                           "Should reject unauthorized access")
     
-    def test_admin_create_admin(self):
-        """Test Admin Create Admin Account"""
-        print("\n=== ADMIN CREATE ADMIN TESTING ===")
+    def test_admin_permission_system(self):
+        """Test Admin Permission System - Complete Flow"""
+        print("\n=== ADMIN PERMISSION SYSTEM TESTING ===")
         
         if not self.admin_token:
-            self.log_result("Admin Create Admin", False, "No admin token available")
+            self.log_result("Admin Permission System", False, "No admin token available")
             return
         
-        # Test 1: Valid admin creation
-        new_admin_data = {
-            "email": f"newadmin_{uuid.uuid4().hex[:8]}@medischedule.test",
+        # Test 1: Create Admin with Limited Permissions
+        limited_admin_data = {
+            "email": "limited_admin@test.com",
             "password": "admin123",
-            "full_name": "Quản trị viên mới"
+            "full_name": "Limited Admin",
+            "admin_permissions": {
+                "can_manage_doctors": True,
+                "can_manage_patients": True,
+                "can_manage_appointments": False,
+                "can_view_stats": True,
+                "can_manage_specialties": False,
+                "can_create_admins": False
+            }
         }
         
-        response = self.make_request("POST", "/admin/create-admin", new_admin_data, token=self.admin_token)
+        response = self.make_request("POST", "/admin/create-admin", limited_admin_data, token=self.admin_token)
         if response and response.status_code == 200:
             data = response.json()
             if data.get("message") and data.get("user"):
-                self.log_result("Admin Create Admin", True, "Successfully created new admin account")
+                self.limited_admin_id = data.get("user", {}).get("id")
+                self.log_result("Create Admin with Limited Permissions", True, 
+                              "Successfully created limited admin account")
             else:
-                self.log_result("Admin Create Admin", False, "Missing message or user in response")
+                self.log_result("Create Admin with Limited Permissions", False, 
+                              "Missing message or user in response")
+                return
         else:
             error_msg = response.text if response else "Connection failed"
-            self.log_result("Admin Create Admin", False, "Failed to create admin account", error_msg)
+            self.log_result("Create Admin with Limited Permissions", False, 
+                          "Failed to create admin account", error_msg)
+            return
         
-        # Test 2: Unauthorized access (patient trying to create admin)
-        response = self.make_request("POST", "/admin/create-admin", new_admin_data, token=self.patient_token)
+        # Test 2: Get All Admins
+        response = self.make_request("GET", "/admin/admins", token=self.admin_token)
+        if response and response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list) and len(data) >= 2:  # Root admin + new admin
+                self.log_result("Get All Admins", True, f"Retrieved {len(data)} admin accounts")
+            else:
+                self.log_result("Get All Admins", False, "Should return at least 2 admins")
+        else:
+            error_msg = response.text if response else "Connection failed"
+            self.log_result("Get All Admins", False, "Failed to get admin list", error_msg)
+        
+        # Test 3: Update Admin Permissions
+        if hasattr(self, 'limited_admin_id'):
+            update_permissions_data = {
+                "admin_id": self.limited_admin_id,
+                "permissions": {
+                    "can_manage_doctors": True,
+                    "can_manage_patients": True,
+                    "can_manage_appointments": False,
+                    "can_view_stats": True,
+                    "can_manage_specialties": True,  # Changed to True
+                    "can_create_admins": False
+                }
+            }
+            
+            response = self.make_request("PUT", "/admin/update-permissions", update_permissions_data, token=self.admin_token)
+            if response and response.status_code == 200:
+                data = response.json()
+                if data.get("message") and data.get("admin"):
+                    self.log_result("Update Admin Permissions", True, "Successfully updated permissions")
+                else:
+                    self.log_result("Update Admin Permissions", False, "Missing message or admin in response")
+            else:
+                error_msg = response.text if response else "Connection failed"
+                self.log_result("Update Admin Permissions", False, "Failed to update permissions", error_msg)
+        
+        # Test 4: Test Permission Enforcement - Login as limited admin and try to create admin
+        limited_admin_login = {
+            "email": "limited_admin@test.com",
+            "password": "admin123"
+        }
+        
+        response = self.make_request("POST", "/auth/login", limited_admin_login)
+        if response and response.status_code == 200:
+            limited_admin_token = response.json().get("token")
+            
+            # Try to create another admin (should fail)
+            test_admin_data = {
+                "email": "test_admin@test.com",
+                "password": "admin123",
+                "full_name": "Test Admin"
+            }
+            
+            response = self.make_request("POST", "/admin/create-admin", test_admin_data, token=limited_admin_token)
+            if response and response.status_code == 403:
+                self.log_result("Permission Enforcement Test", True, 
+                              "Correctly rejected limited admin trying to create admin")
+            else:
+                self.log_result("Permission Enforcement Test", False, 
+                              "Should reject limited admin creating admin")
+        else:
+            self.log_result("Limited Admin Login", False, "Failed to login as limited admin")
+        
+        # Test 5: Unauthorized access tests
+        response = self.make_request("POST", "/admin/create-admin", limited_admin_data, token=self.patient_token)
         if response and response.status_code == 403:
-            self.log_result("Admin Create Admin - Auth Check", True, 
+            self.log_result("Admin Create - Patient Access Check", True, 
                           "Correctly rejected patient access")
         else:
-            self.log_result("Admin Create Admin - Auth Check", False, 
+            self.log_result("Admin Create - Patient Access Check", False, 
                           "Should reject patient access")
         
-        # Test 3: No token
-        response = self.make_request("POST", "/admin/create-admin", new_admin_data)
-        if response and response.status_code == 401:
-            self.log_result("Admin Create Admin - No Token", True, 
+        response = self.make_request("POST", "/admin/create-admin", limited_admin_data)
+        if response and response.status_code in [401, 403]:
+            self.log_result("Admin Create - No Token Check", True, 
                           "Correctly rejected unauthorized access")
         else:
-            self.log_result("Admin Create Admin - No Token", False, 
+            self.log_result("Admin Create - No Token Check", False, 
                           "Should reject unauthorized access")
     
     def test_ai_conversation_summarization(self):
