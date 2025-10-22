@@ -76,12 +76,21 @@ class UserRole:
     DOCTOR = "doctor"
     ADMIN = "admin"
 
+class AdminPermissions(BaseModel):
+    can_manage_doctors: bool = True
+    can_manage_patients: bool = True
+    can_manage_appointments: bool = True
+    can_view_stats: bool = True
+    can_manage_specialties: bool = True
+    can_create_admins: bool = False  # Only root admin should have this
+
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    email: EmailStr
+    email: str
     full_name: str
     role: str = UserRole.PATIENT
+    admin_permissions: Optional[dict] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
