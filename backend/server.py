@@ -254,9 +254,19 @@ async def login(login_data: UserLogin):
 async def get_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+    
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        if '@' not in v or '.' not in v.split('@')[1]:
+            raise ValueError('Invalid email format')
+        return v.lower()
+
 @api_router.post("/auth/forgot-password")
-async def forgot_password(email: EmailStr):
-    user = await db.users.find_one({"email": email})
+async def forgot_password(request: ForgotPasswordRequest):
+    user = await db.users.find_one({"email": request.email})
     if not user:
         # Don't reveal if email exists
         return {"message": "If email exists, reset link will be sent"}
