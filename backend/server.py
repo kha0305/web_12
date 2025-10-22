@@ -74,6 +74,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 class UserRole:
     PATIENT = "patient"
     DOCTOR = "doctor"
+    DEPARTMENT_HEAD = "department_head"  # Trưởng khoa
     ADMIN = "admin"
 
 class AdminPermissions(BaseModel):
