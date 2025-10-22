@@ -906,6 +906,199 @@ async def get_ai_chat_history(current_user: dict = Depends(get_current_user)):
     
     return history
 
+# Department Head Routes
+@api_router.post("/department-head/promote")
+async def promote_to_department_head(request: PromoteToDepartmentHeadRequest, current_user: dict = Depends(get_current_user)):
+    """Admin hoặc Trưởng khoa hiện tại có thể chỉ định Trưởng khoa mới"""
+    if current_user["role"] not in [UserRole.ADMIN, UserRole.DEPARTMENT_HEAD]:
+        raise HTTPException(status_code=403, detail="Admin or Department Head access required")
+    
+    # Get doctor profile
+    doctor = await db.doctor_profiles.find_one({"user_id": request.doctor_id}, {"_id": 0})
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    
+    # If current user is department head, they can only promote doctors in their specialty
+    if current_user["role"] == UserRole.DEPARTMENT_HEAD:
+        current_doctor = await db.doctor_profiles.find_one({"user_id": current_user["id"]}, {"_id": 0})
+        if current_doctor["specialty_id"] != doctor["specialty_id"]:
+            raise HTTPException(status_code=403, detail="You can only manage doctors in your specialty")
+    
+    # Set as department head
+    await db.doctor_profiles.update_one(
+        {"user_id": request.doctor_id},
+        {"$set": {"is_department_head": True}}
+    )
+    
+    # Update user role
+    await db.users.update_one(
+        {"id": request.doctor_id},
+        {"$set": {"role": UserRole.DEPARTMENT_HEAD}}
+    )
+    
+    return {"message": "Doctor promoted to Department Head successfully"}
+
+@api_router.post("/department-head/demote/{doctor_id}")
+async def demote_department_head(doctor_id: str, current_user: dict = Depends(get_current_user)):
+    """Admin có thể hạ chức Trưởng khoa"""
+    if current_user["role"] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Demote from department head
+    await db.doctor_profiles.update_one(
+        {"user_id": doctor_id},
+        {"$set": {"is_department_head": False}}
+    )
+    
+    # Update user role back to doctor
+    await db.users.update_one(
+        {"id": doctor_id},
+        {"$set": {"role": UserRole.DOCTOR}}
+    )
+    
+    return {"message": "Department Head demoted to Doctor successfully"}
+
+@api_router.post("/department-head/add-doctor")
+async def add_doctor_by_department_head(doctor_data: AddDoctorRequest, current_user: dict = Depends(get_current_user)):
+    """Trưởng khoa thêm bác sĩ vào chuyên khoa của mình"""
+    if current_user["role"] not in [UserRole.ADMIN, UserRole.DEPARTMENT_HEAD]:
+        raise HTTPException(status_code=403, detail="Admin or Department Head access required")
+    
+    # If department head, verify they're adding to their own specialty
+    if current_user["role"] == UserRole.DEPARTMENT_HEAD:
+        current_doctor = await db.doctor_profiles.find_one({"user_id": current_user["id"]}, {"_id": 0})
+        if current_doctor["specialty_id"] != doctor_data.specialty_id:
+            raise HTTPException(status_code=403, detail="You can only add doctors to your specialty")
+    
+    # Validate email
+    if '@' not in doctor_data.email or '.' not in doctor_data.email.split('@')[1]:
+        raise HTTPException(status_code=400, detail="Invalid email format")
+    
+    # Check if user exists
+    existing_user = await db.users.find_one({"email": doctor_data.email.lower()})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Hash password
+    hashed_password = hash_password(doctor_data.password)
+    
+    # Create doctor user
+    user = User(
+        email=doctor_data.email.lower(),
+        full_name=doctor_data.full_name,
+        role=UserRole.DOCTOR
+    )
+    
+    user_dict = user.model_dump()
+    user_dict["password"] = hashed_password
+    user_dict["created_at"] = user_dict["created_at"].isoformat()
+    
+    await db.users.insert_one(user_dict)
+    
+    # Create doctor profile - auto-approved since added by department head
+    doctor_profile = {
+        "user_id": user.id,
+        "specialty_id": doctor_data.specialty_id,
+        "bio": doctor_data.bio or "",
+        "experience_years": doctor_data.experience_years or 0,
+        "consultation_fee": doctor_data.consultation_fee or 0,
+        "available_slots": [],
+        "status": "approved",  # Auto-approved
+        "is_department_head": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.doctor_profiles.insert_one(doctor_profile)
+    
+    return {"message": "Doctor added successfully", "doctor_id": user.id}
+
+@api_router.get("/department-head/my-doctors")
+async def get_my_department_doctors(current_user: dict = Depends(get_current_user)):
+    """Trưởng khoa xem danh sách bác sĩ trong chuyên khoa của mình"""
+    if current_user["role"] != UserRole.DEPARTMENT_HEAD:
+        raise HTTPException(status_code=403, detail="Department Head access required")
+    
+    # Get department head's specialty
+    dept_head_profile = await db.doctor_profiles.find_one({"user_id": current_user["id"]}, {"_id": 0})
+    if not dept_head_profile:
+        raise HTTPException(status_code=404, detail="Department Head profile not found")
+    
+    # Get all doctors in same specialty
+    doctors = await db.doctor_profiles.find({
+        "specialty_id": dept_head_profile["specialty_id"]
+    }, {"_id": 0}).to_list(1000)
+    
+    # Enrich with user info
+    for doctor in doctors:
+        user = await db.users.find_one({"id": doctor["user_id"]}, {"_id": 0, "password": 0})
+        if user:
+            doctor["full_name"] = user["full_name"]
+            doctor["email"] = user["email"]
+            doctor["role"] = user["role"]
+        
+        # Get specialty name
+        specialty = await db.specialties.find_one({"id": doctor["specialty_id"]}, {"_id": 0})
+        if specialty:
+            doctor["specialty_name"] = specialty["name"]
+    
+    return doctors
+
+@api_router.put("/department-head/approve-doctor/{doctor_id}")
+async def department_head_approve_doctor(doctor_id: str, status: str, current_user: dict = Depends(get_current_user)):
+    """Trưởng khoa duyệt/từ chối bác sĩ trong chuyên khoa"""
+    if current_user["role"] not in [UserRole.ADMIN, UserRole.DEPARTMENT_HEAD]:
+        raise HTTPException(status_code=403, detail="Admin or Department Head access required")
+    
+    # Get doctor
+    doctor = await db.doctor_profiles.find_one({"user_id": doctor_id}, {"_id": 0})
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    
+    # If department head, verify same specialty
+    if current_user["role"] == UserRole.DEPARTMENT_HEAD:
+        current_doctor = await db.doctor_profiles.find_one({"user_id": current_user["id"]}, {"_id": 0})
+        if current_doctor["specialty_id"] != doctor["specialty_id"]:
+            raise HTTPException(status_code=403, detail="You can only manage doctors in your specialty")
+    
+    # Update status
+    await db.doctor_profiles.update_one(
+        {"user_id": doctor_id},
+        {"$set": {"status": status}}
+    )
+    
+    updated_doctor = await db.doctor_profiles.find_one({"user_id": doctor_id}, {"_id": 0})
+    return updated_doctor
+
+@api_router.delete("/department-head/remove-doctor/{doctor_id}")
+async def department_head_remove_doctor(doctor_id: str, current_user: dict = Depends(get_current_user)):
+    """Trưởng khoa xóa bác sĩ khỏi chuyên khoa"""
+    if current_user["role"] not in [UserRole.ADMIN, UserRole.DEPARTMENT_HEAD]:
+        raise HTTPException(status_code=403, detail="Admin or Department Head access required")
+    
+    # Get doctor
+    doctor = await db.doctor_profiles.find_one({"user_id": doctor_id}, {"_id": 0})
+    if not doctor:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+    
+    # Cannot remove self
+    if doctor_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot remove yourself")
+    
+    # Cannot remove other department heads
+    if doctor.get("is_department_head", False):
+        raise HTTPException(status_code=400, detail="Cannot remove another Department Head")
+    
+    # If department head, verify same specialty
+    if current_user["role"] == UserRole.DEPARTMENT_HEAD:
+        current_doctor = await db.doctor_profiles.find_one({"user_id": current_user["id"]}, {"_id": 0})
+        if current_doctor["specialty_id"] != doctor["specialty_id"]:
+            raise HTTPException(status_code=403, detail="You can only manage doctors in your specialty")
+    
+    # Delete doctor profile and user account
+    await db.doctor_profiles.delete_one({"user_id": doctor_id})
+    await db.users.delete_one({"id": doctor_id})
+    
+    return {"message": "Doctor removed successfully"}
+
 # Include the router in the main app
 app.include_router(api_router)
 
