@@ -97,6 +97,7 @@ class MediScheduleAPITester:
         else:
             if response:
                 error_msg = f"Status: {response.status_code}, Body: {response.text}"
+                print(f"   Registration error: {error_msg}")
             else:
                 error_msg = "Connection failed - no response received"
             self.log_result("Patient Registration", False, "Failed to register patient", error_msg)
