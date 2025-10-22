@@ -1,43 +1,140 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict, EmailStr, field_validator
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 import jwt
 from bson import ObjectId
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
+# Load environment variables
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# MongoDB connection settings
+MONGO_URL = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+DB_NAME = os.environ.get('DB_NAME', 'healthcare')
+MONGO_CONNECT_TIMEOUT = int(os.environ.get('MONGO_CONNECT_TIMEOUT', 5000))  # 5 seconds
+MONGO_SERVER_SELECTION_TIMEOUT = int(os.environ.get('MONGO_SERVER_SELECTION_TIMEOUT', 5000))  # 5 seconds
 
-# Create the main app without a prefix
-app = FastAPI()
+# Application Settings
+API_VERSION = "v1"
+API_PREFIX = f"/api/{API_VERSION}"
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
+# Create the main app with metadata
+app = FastAPI(
+    title="Healthcare API",
+    description="Backend API for the Healthcare Management System",
+    version="1.0.0",
+    docs_url=f"{API_PREFIX}/docs",
+    redoc_url=f"{API_PREFIX}/redoc",
+    openapi_url=f"{API_PREFIX}/openapi.json"
+)
 
-# Password hashing
+# Create a router with versioned API prefix
+api_router = APIRouter()
+
+# Configure CORS
+origins = os.environ.get("CORS_ORIGINS", "*").split(",")
+if "*" in origins:
+    origins = ["*"]
+else:
+    origins.extend([
+        "http://localhost:3000",  # React development server
+        "http://localhost:8000",  # FastAPI development server
+    ])
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Database connection
+client: Optional[AsyncIOMotorClient] = None
+db: Any = None
+
+async def get_database() -> Any:
+    if db is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connection not established"
+        )
+    return db
+
+@app.on_event("startup")
+async def startup_db_client():
+    global client, db
+    try:
+        logger.info(f"Connecting to MongoDB at {MONGO_URL}...")
+        # Configure MongoDB client with timeouts
+        client = AsyncIOMotorClient(
+            MONGO_URL,
+            serverSelectionTimeoutMS=MONGO_SERVER_SELECTION_TIMEOUT,
+            connectTimeoutMS=MONGO_CONNECT_TIMEOUT
+        )
+        db = client[DB_NAME]
+        # Verify the connection
+        await client.admin.command('ping')
+        logger.info("Successfully connected to MongoDB")
+        
+        # Create indexes if they don't exist
+        await db.users.create_index("email", unique=True)
+        await db.users.create_index("id", unique=True)
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
+        # In development, we might want to continue without MongoDB
+        if os.environ.get("ENVIRONMENT", "development") == "production":
+            raise
+        logger.warning("Running in development mode without MongoDB")
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    global client
+    if client:
+        logger.info("Closing MongoDB connection...")
+        client.close()
+        logger.info("MongoDB connection closed")
+
+# Security settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
 
 # JWT settings
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-secret-key-change-in-production")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+if SECRET_KEY == "your-secret-key-change-in-production":
+    logger.warning("Using development JWT_SECRET_KEY. Change this in production!")
 
-security = HTTPBearer()
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 7))  # 7 days default
+
+# Response Models
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class HTTPError(BaseModel):
+    detail: str
+
+class SuccessResponse(BaseModel):
+    message: str
+    data: Optional[Dict[str, Any]] = None
 
 # Helper functions
 def hash_password(password: str) -> str:
@@ -46,36 +143,91 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+def create_access_token(data: dict) -> str:
+    try:
+        to_encode = data.copy()
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+    except Exception as e:
+        logger.error(f"Error creating access token: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not create access token"
+        )
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+# Middleware for error handling
+@app.middleware("http")
+async def error_handler(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except HTTPException as e:
+        return JSONResponse(
+            status_code=e.status_code,
+            content={"detail": e.detail}
+        )
+    except Exception as e:
+        logger.error(f"Unhandled error: {str(e)}", exc_info=True)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Internal server error"}
+        )
+
+# Authentication middleware
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db = Depends(get_database)
+) -> dict:
     token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token"
+            )
         
         user = await db.users.find_one({"id": user_id}, {"_id": 0})
         if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
         return user
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        logger.warning(f"Expired token attempt for user ID: {user_id if 'user_id' in locals() else 'unknown'}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication token has expired"
+        )
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"Invalid token attempt: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token"
+        )
+    except Exception as e:
+        logger.error(f"Authentication error: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error during authentication"
+        )
+
+# Include router in the main app
+app.include_router(api_router, prefix=API_PREFIX)
 
 # Models
 class UserRole:
     PATIENT = "patient"
     DOCTOR = "doctor"
-    DEPARTMENT_HEAD = "department_head"  # Trưởng khoa
+    DEPARTMENT_HEAD = "department_head"
     ADMIN = "admin"
+
+    @classmethod
+    def is_valid(cls, role: str) -> bool:
+        return role in {cls.PATIENT, cls.DOCTOR, cls.DEPARTMENT_HEAD, cls.ADMIN}
 
 class AdminPermissions(BaseModel):
     can_manage_doctors: bool = True
@@ -684,176 +836,20 @@ class AddDoctorRequest(BaseModel):
     experience_years: Optional[int] = None
     consultation_fee: Optional[float] = None
 
-# AI Models
-class AIChatMessage(BaseModel):
-    message: str
-
-class AIChatResponse(BaseModel):
-    response: str
-    session_id: str
-
-class AIRecommendDoctorRequest(BaseModel):
-    symptoms: str
-
-class AIRecommendDoctorResponse(BaseModel):
-    recommended_specialty: str
-    reasoning: str
-    doctors: List[dict]
-
-class AISummarizeRequest(BaseModel):
-    appointment_id: str
-
-# AI Routes
-@api_router.post("/ai/chat", response_model=AIChatResponse)
-async def ai_chat(message_data: AIChatMessage, current_user: dict = Depends(get_current_user)):
-    """AI Chatbot tư vấn sức khỏe tự động cho bệnh nhân"""
-    if current_user["role"] != UserRole.PATIENT:
-        raise HTTPException(status_code=403, detail="Patient access required")
-    
+# API Health Check
+@api_router.get("/health")
+async def health_check():
+    """Check API health status"""
     try:
-        # Create or get session
-        session_id = f"patient_{current_user['id']}_health_chat"
-        
-        # Initialize AI chat
-        chat = LlmChat(
-            api_key=os.environ['EMERGENT_LLM_KEY'],
-            session_id=session_id,
-            system_message="""Bạn là trợ lý tư vấn sức khỏe thông minh và thân thiện. 
-            Nhiệm vụ của bạn:
-            - Trả lời các câu hỏi về sức khỏe một cách chuyên nghiệp và dễ hiểu
-            - Đưa ra lời khuyên sức khỏe cơ bản
-            - Khuyến nghị họ nên đặt lịch khám bác sĩ khi cần thiết
-            - Luôn nhắc nhở: Đây chỉ là tư vấn cơ bản, không thay thế cho chẩn đoán y khoa
-            - Trả lời bằng tiếng Việt
-            
-            LƯU Ý QUAN TRỌNG: Không đưa ra chẩn đoán y khoa chính thức. Luôn khuyến nghị gặp bác sĩ cho các vấn đề nghiêm trọng."""
-        ).with_model("openai", "gpt-4o")
-        
-        # Send message
-        user_message = UserMessage(text=message_data.message)
-        response = await chat.send_message(user_message)
-        
-        # Save to database
-        chat_record = {
-            "id": str(uuid.uuid4()),
-            "session_id": session_id,
-            "user_id": current_user["id"],
-            "user_message": message_data.message,
-            "ai_response": response,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        await db.ai_chat_history.insert_one(chat_record)
-        
-        return AIChatResponse(response=response, session_id=session_id)
-    
+        # Check database connection
+        await client.admin.command('ping')
+        return {"status": "healthy", "database": "connected"}
     except Exception as e:
-        logger.error(f"AI Chat Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"AI chat error: {str(e)}")
-
-@api_router.post("/ai/recommend-doctor", response_model=AIRecommendDoctorResponse)
-async def ai_recommend_doctor(request: AIRecommendDoctorRequest, current_user: dict = Depends(get_current_user)):
-    """Gợi ý bác sĩ phù hợp dựa trên triệu chứng"""
-    if current_user["role"] != UserRole.PATIENT:
-        raise HTTPException(status_code=403, detail="Patient access required")
-    
-    try:
-        # Get all specialties
-        specialties = await db.specialties.find({}, {"_id": 0}).to_list(1000)
-        specialty_list = [s["name"] for s in specialties]
-        
-        # AI recommendation
-        session_id = f"recommend_{str(uuid.uuid4())}"
-        chat = LlmChat(
-            api_key=os.environ['EMERGENT_LLM_KEY'],
-            session_id=session_id,
-            system_message=f"""Bạn là chuyên gia y tế AI giúp phân tích triệu chứng và gợi ý chuyên khoa phù hợp.
-            
-            Danh sách chuyên khoa có sẵn: {', '.join(specialty_list)}
-            
-            Nhiệm vụ:
-            1. Phân tích triệu chứng bệnh nhân mô tả
-            2. Chọn 1 chuyên khoa phù hợp nhất từ danh sách trên
-            3. Giải thích lý do tại sao chọn chuyên khoa đó
-            
-            Trả lời theo format JSON:
-            {{
-                "specialty": "tên chuyên khoa",
-                "reasoning": "lý do chi tiết bằng tiếng Việt"
-            }}
-            
-            CHỈ TRẢ VỀ JSON, KHÔNG CÓ TEXT KHÁC."""
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=f"Triệu chứng: {request.symptoms}")
-        response = await chat.send_message(user_message)
-        
-        # Parse AI response
-        import json
-        try:
-            ai_result = json.loads(response)
-            recommended_specialty = ai_result.get("specialty", "")
-            reasoning = ai_result.get("reasoning", "")
-        except:
-            # Fallback parsing
-            recommended_specialty = specialty_list[0] if specialty_list else ""
-            reasoning = response
-        
-        # Find specialty ID
-        specialty = await db.specialties.find_one({"name": recommended_specialty}, {"_id": 0})
-        if not specialty:
-            # Find closest match
-            specialty = specialties[0] if specialties else None
-        
-        # Get doctors for this specialty
-        doctors = []
-        if specialty:
-            doctors = await db.doctor_profiles.find({
-                "specialty_id": specialty["id"],
-                "status": "approved"
-            }, {"_id": 0}).to_list(100)
-            
-            # Enrich with user info
-            for doctor in doctors:
-                user = await db.users.find_one({"id": doctor["user_id"]}, {"_id": 0, "password": 0})
-                if user:
-                    doctor["full_name"] = user["full_name"]
-                    doctor["email"] = user["email"]
-                doctor["specialty_name"] = specialty["name"]
-        
-        return AIRecommendDoctorResponse(
-            recommended_specialty=specialty["name"] if specialty else recommended_specialty,
-            reasoning=reasoning,
-            doctors=doctors
+        logger.error(f"Health check failed: {str(e)}")
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "unhealthy", "database": "disconnected", "error": str(e)}
         )
-    
-    except Exception as e:
-        logger.error(f"AI Recommend Doctor Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"AI recommendation error: {str(e)}")
-
-@api_router.post("/ai/summarize-conversation/{appointment_id}")
-async def ai_summarize_conversation(appointment_id: str, current_user: dict = Depends(get_current_user)):
-    """Tóm tắt cuộc hội thoại giữa bác sĩ và bệnh nhân"""
-    # Verify appointment and access
-    appointment = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
-    if not appointment:
-        raise HTTPException(status_code=404, detail="Appointment not found")
-    
-    # Only doctor or patient of this appointment can summarize
-    if current_user["id"] not in [appointment["patient_id"], appointment["doctor_id"]]:
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    try:
-        # Get all messages
-        messages = await db.chat_messages.find({"appointment_id": appointment_id}, {"_id": 0}).to_list(1000)
-        messages.sort(key=lambda x: x.get("created_at", ""))
-        
-        if not messages:
-            raise HTTPException(status_code=400, detail="No messages to summarize")
-        
-        # Format conversation
-        conversation_text = "\n".join([
-            f"{msg['sender_name']}: {msg['message']}" for msg in messages
-        ])
         
         # AI summarization
         session_id = f"summary_{appointment_id}"
