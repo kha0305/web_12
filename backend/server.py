@@ -139,6 +139,7 @@ class DoctorProfile(BaseModel):
     consultation_fee: Optional[float] = None
     available_slots: List[dict] = []  # [{"day": "monday", "start_time": "09:00", "end_time": "17:00"}]
     status: str = "pending"  # pending, approved, rejected
+    is_department_head: bool = False  # Trưởng khoa flag
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DoctorProfileUpdate(BaseModel):
