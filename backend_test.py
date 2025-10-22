@@ -55,19 +55,23 @@ class MediScheduleAPITester:
         if token:
             headers["Authorization"] = f"Bearer {token}"
         
+        print(f"   Making {method} request to: {url}")
+        
         try:
             if method.upper() == "GET":
-                response = requests.get(url, headers=headers, timeout=30)
+                response = requests.get(url, headers=headers, timeout=30, verify=False)
             elif method.upper() == "POST":
-                response = requests.post(url, json=data, headers=headers, timeout=30)
+                response = requests.post(url, json=data, headers=headers, timeout=30, verify=False)
             elif method.upper() == "PUT":
-                response = requests.put(url, json=data, headers=headers, timeout=30)
+                response = requests.put(url, json=data, headers=headers, timeout=30, verify=False)
             else:
                 raise ValueError(f"Unsupported method: {method}")
             
+            print(f"   Response status: {response.status_code}")
             return response
         except requests.exceptions.RequestException as e:
-            return None, str(e)
+            print(f"   Request failed: {str(e)}")
+            return None
     
     def test_auth_setup(self):
         """Test authentication setup - register and login users"""
