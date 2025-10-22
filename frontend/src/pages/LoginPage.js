@@ -28,12 +28,19 @@ export default function LoginPage() {
       const response = await axios.post(`${API}/auth/login`, formData);
       const { token, user } = response.data;
       
+      // Remember email if checkbox is checked
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', formData.email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+      
       login(token, user);
       toast.success('Đăng nhập thành công!');
       
       // Redirect based on role
       if (user.role === 'patient') navigate('/patient/dashboard');
-      else if (user.role === 'doctor') navigate('/doctor/dashboard');
+      else if (user.role === 'doctor' || user.role === 'department_head') navigate('/doctor/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Đăng nhập thất bại');
