@@ -109,7 +109,7 @@ class MediScheduleAPITester:
         
         # 2. Register Doctor
         doctor_data = {
-            "email": f"doctor_{test_id}@medischedule.test",
+            "email": f"doctor_{test_id}@example.com",
             "password": "doctor123",
             "full_name": "Bác sĩ Nguyễn Văn Y",
             "role": "doctor"
