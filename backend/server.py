@@ -560,7 +560,7 @@ async def create_admin_account(user_data: UserCreate, current_user: dict = Depen
         raise HTTPException(status_code=403, detail="Admin access required")
     
     # Check if current admin has permission to create admins
-    current_permissions = current_user.get("admin_permissions", {})
+    current_permissions = current_user.get("admin_permissions") or {}
     if not current_permissions.get("can_create_admins", False):
         raise HTTPException(status_code=403, detail="You don't have permission to create admin accounts")
     
