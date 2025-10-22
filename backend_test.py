@@ -82,7 +82,7 @@ class MediScheduleAPITester:
         
         # 1. Register Patient
         patient_data = {
-            "email": f"patient_{test_id}@medischedule.test",
+            "email": f"patient_{test_id}@example.com",
             "password": "patient123",
             "full_name": "Nguyễn Văn Bệnh Nhân",
             "role": "patient"
