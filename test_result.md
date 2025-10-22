@@ -153,17 +153,41 @@ backend:
         agent: "main"
         comment: "Created POST /api/ai/summarize-conversation/{appointment_id} endpoint. Summarizes doctor-patient chat conversations."
   
-  - task: "Admin Create Admin Account"
+  - task: "Email Validation Fix"
     implemented: true
     working: "NA"
     file: "backend/server.py"
     stuck_count: 0
-    priority: "medium"
+    priority: "critical"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Created POST /api/admin/create-admin endpoint. Only existing admin can create new admin accounts."
+        comment: "Fixed EmailStr validation to allow test domains. Changed from pydantic EmailStr to custom validator."
+  
+  - task: "Admin Create Admin Account with Permissions"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py, backend/create_admin.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced admin creation with permission system. Root admin has can_create_admins=True. New admins can have custom permissions."
+  
+  - task: "Admin Permission Management"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added GET /api/admin/admins, PUT /api/admin/update-permissions, DELETE /api/admin/delete-admin/{admin_id}. Admins have granular permissions."
   
   - task: "AI Chat History"
     implemented: true
