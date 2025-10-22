@@ -269,3 +269,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Completed backend AI features implementation. Ready for testing. All AI endpoints use OpenAI GPT-4o with Emergent LLM Key. Need to test: 1) AI chat functionality 2) Doctor recommendation based on symptoms 3) Conversation summarization 4) Admin account creation."
+  - agent: "main"
+    message: "Fixed email validation issue that was blocking tests. Now using custom validator instead of EmailStr. Also enhanced admin system with permission management. Root admin (admin@medischedule.com) has full permissions including can_create_admins. Ready for re-testing."
