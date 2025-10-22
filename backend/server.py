@@ -98,6 +98,7 @@ class UserCreate(BaseModel):
     password: str
     full_name: str
     role: str = UserRole.PATIENT
+    admin_permissions: Optional[dict] = None
     
     @field_validator('email')
     @classmethod
