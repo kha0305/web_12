@@ -506,7 +506,7 @@ class MediScheduleAPITester:
         self.test_ai_chatbot()
         self.test_ai_doctor_recommendation()
         self.test_ai_chat_history()
-        self.test_admin_create_admin()
+        self.test_admin_permission_system()
         self.test_ai_conversation_summarization()
         
         # Print summary
