@@ -95,7 +95,10 @@ class MediScheduleAPITester:
             self.patient_id = data.get("user", {}).get("id")
             self.log_result("Patient Registration", True, "Patient registered successfully")
         else:
-            error_msg = response.text if response else "Connection failed"
+            if response:
+                error_msg = f"Status: {response.status_code}, Body: {response.text}"
+            else:
+                error_msg = "Connection failed - no response received"
             self.log_result("Patient Registration", False, "Failed to register patient", error_msg)
             return False
         
