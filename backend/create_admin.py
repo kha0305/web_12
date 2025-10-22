@@ -23,13 +23,21 @@ async def create_admin():
         print("Admin already exists")
         return
     
-    # Create admin
+    # Create root admin with full permissions
     admin_data = {
         "id": str(uuid.uuid4()),
         "email": "admin@medischedule.com",
         "password": pwd_context.hash("admin123"),
-        "full_name": "Admin",
+        "full_name": "Root Admin",
         "role": "admin",
+        "admin_permissions": {
+            "can_manage_doctors": True,
+            "can_manage_patients": True,
+            "can_manage_appointments": True,
+            "can_view_stats": True,
+            "can_manage_specialties": True,
+            "can_create_admins": True  # Root admin can create other admins
+        },
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     
