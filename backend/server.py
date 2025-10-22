@@ -650,7 +650,7 @@ async def delete_admin_account(admin_id: str, current_user: dict = Depends(get_c
         raise HTTPException(status_code=403, detail="Admin access required")
     
     # Check permission
-    current_permissions = current_user.get("admin_permissions", {})
+    current_permissions = current_user.get("admin_permissions") or {}
     if not current_permissions.get("can_create_admins", False):
         raise HTTPException(status_code=403, detail="You don't have permission to delete admin accounts")
     
