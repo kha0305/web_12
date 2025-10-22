@@ -98,8 +98,15 @@ class UserCreate(BaseModel):
         return v.lower()
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str
     password: str
+    
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        if '@' not in v or '.' not in v.split('@')[1]:
+            raise ValueError('Invalid email format')
+        return v.lower()
 
 class Specialty(BaseModel):
     model_config = ConfigDict(extra="ignore")
