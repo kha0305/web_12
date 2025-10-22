@@ -82,8 +82,8 @@ class MediScheduleAPITester:
         
         # 1. Register Patient
         patient_data = {
-            "email": f"patient_{test_id}@example.com",
-            "password": "patient123",
+            "email": f"patient_{test_id}@test.com",
+            "password": "test123",
             "full_name": "Nguyễn Văn Bệnh Nhân",
             "role": "patient"
         }
@@ -109,8 +109,8 @@ class MediScheduleAPITester:
         
         # 2. Register Doctor
         doctor_data = {
-            "email": f"doctor_{test_id}@example.com",
-            "password": "doctor123",
+            "email": f"doctor_{test_id}@test.com",
+            "password": "test123",
             "full_name": "Bác sĩ Nguyễn Văn Y",
             "role": "doctor"
         }
@@ -126,23 +126,21 @@ class MediScheduleAPITester:
             self.log_result("Doctor Registration", False, "Failed to register doctor", error_msg)
             return False
         
-        # 3. Register Admin (first admin - should work without auth)
-        admin_data = {
-            "email": f"admin_{test_id}@example.com",
-            "password": "admin123",
-            "full_name": "Quản trị viên Nguyễn",
-            "role": "admin"
+        # 3. Login as Root Admin (use existing root admin)
+        admin_login_data = {
+            "email": "admin@medischedule.com",
+            "password": "admin123"
         }
         
-        response = self.make_request("POST", "/auth/register", admin_data)
+        response = self.make_request("POST", "/auth/login", admin_login_data)
         if response and response.status_code == 200:
             data = response.json()
             self.admin_token = data.get("token")
             self.admin_id = data.get("user", {}).get("id")
-            self.log_result("Admin Registration", True, "Admin registered successfully")
+            self.log_result("Root Admin Login", True, "Root admin logged in successfully")
         else:
             error_msg = response.text if response else "Connection failed"
-            self.log_result("Admin Registration", False, "Failed to register admin", error_msg)
+            self.log_result("Root Admin Login", False, "Failed to login as root admin", error_msg)
             return False
         
         return True
