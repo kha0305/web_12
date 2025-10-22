@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AuthContext, API } from '@/App';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { Calendar, ArrowLeft } from 'lucide-react';
+import { Calendar, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
