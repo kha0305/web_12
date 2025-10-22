@@ -128,7 +128,7 @@ class MediScheduleAPITester:
         
         # 3. Register Admin (first admin - should work without auth)
         admin_data = {
-            "email": f"admin_{test_id}@medischedule.test",
+            "email": f"admin_{test_id}@example.com",
             "password": "admin123",
             "full_name": "Quản trị viên Nguyễn",
             "role": "admin"
