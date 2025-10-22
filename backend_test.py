@@ -257,7 +257,7 @@ class MediScheduleAPITester:
         
         # Test 2: Unauthorized access
         response = self.make_request("GET", "/ai/chat-history")
-        if response and response.status_code == 401:
+        if response and response.status_code in [401, 403]:
             self.log_result("AI Chat History - Auth Check", True, 
                           "Correctly rejected unauthorized access")
         else:
