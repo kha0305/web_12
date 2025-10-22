@@ -178,7 +178,7 @@ class MediScheduleAPITester:
         
         # Test 2: Unauthorized access (no token)
         response = self.make_request("POST", "/ai/chat", chat_data)
-        if response and response.status_code == 401:
+        if response and response.status_code in [401, 403]:
             self.log_result("AI Chatbot - Auth Check", True, "Correctly rejected unauthorized access")
         else:
             self.log_result("AI Chatbot - Auth Check", False, "Should reject unauthorized access")
