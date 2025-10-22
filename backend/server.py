@@ -670,6 +670,19 @@ async def delete_admin_account(admin_id: str, current_user: dict = Depends(get_c
     
     return {"message": "Admin account deleted successfully"}
 
+# Department Head Models
+class PromoteToDepartmentHeadRequest(BaseModel):
+    doctor_id: str
+
+class AddDoctorRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    specialty_id: str
+    bio: Optional[str] = None
+    experience_years: Optional[int] = None
+    consultation_fee: Optional[float] = None
+
 # AI Models
 class AIChatMessage(BaseModel):
     message: str
