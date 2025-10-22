@@ -89,14 +89,18 @@ class MediScheduleAPITester:
         }
         
         response = self.make_request("POST", "/auth/register", patient_data)
-        if response and response.status_code == 200:
+        if response is not None and response.status_code == 200:
             data = response.json()
             self.patient_token = data.get("token")
             self.patient_id = data.get("user", {}).get("id")
             self.log_result("Patient Registration", True, "Patient registered successfully")
         else:
-            if response:
-                error_msg = f"Status: {response.status_code}, Body: {response.text}"
+            if response is not None:
+                try:
+                    error_detail = response.json()
+                    error_msg = f"Status: {response.status_code}, Error: {error_detail}"
+                except:
+                    error_msg = f"Status: {response.status_code}, Body: {response.text}"
                 print(f"   Registration error: {error_msg}")
             else:
                 error_msg = "Connection failed - no response received"
