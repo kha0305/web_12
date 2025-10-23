@@ -291,7 +291,62 @@ export const translations = {
     obstetrics: 'Obstetrics',
     neurology: 'Neurology',
     dermatology: 'Dermatology',
-    ent: 'ENT'
+    ent: 'ENT',
+    
+    // Doctors Management
+    doctorManagement: 'Doctor Management',
+    doctorList: 'Doctor List',
+    filterByStatus: 'Filter by Status',
+    all: 'All',
+    pending: 'Pending',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    searchDoctors: 'Search doctors...',
+    approve: 'Approve',
+    reject: 'Reject',
+    remove: 'Remove',
+    status: 'Status',
+    experience: 'Experience',
+    years: 'years',
+    fee: 'Fee',
+    
+    // Patients Management
+    patientManagement: 'Patient Management',
+    searchPatients: 'Search patients...',
+    registeredDate: 'Registered Date',
+    
+    // Stats Page
+    systemStatistics: 'System Statistics',
+    overview: 'Overview',
+    totalPatients: 'Total Patients',
+    totalDoctors: 'Total Doctors',
+    totalAppointments: 'Total Appointments',
+    appointmentsByStatus: 'Appointments by Status',
+    pendingAppointments: 'Pending',
+    confirmedAppointments: 'Confirmed',
+    completedAppointments: 'Completed',
+    cancelledAppointments: 'Cancelled',
+    appointmentsByType: 'Appointments by Type',
+    onlineConsultations: 'Online Consultations',
+    inPersonConsultations: 'In-Person Consultations',
+    doctorsByStatus: 'Doctors by Status',
+    pendingDoctors: 'Pending',
+    approvedDoctors: 'Approved',
+    
+    // Common Actions
+    viewDetails: 'View Details',
+    actions: 'Actions',
+    noData: 'No data available',
+    confirmDeleteUser: 'Are you sure you want to delete this user?',
+    userDeleted: 'User deleted',
+    cannotDeleteUser: 'Cannot delete user',
+    
+    // Sidebar Navigation
+    createAccounts: 'Create Accounts',
+    doctors: 'Doctors',
+    patients: 'Patients',
+    stats: 'Statistics',
+    admins: 'Manage Admins'
   }
 };
 
