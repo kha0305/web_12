@@ -119,6 +119,12 @@ function App() {
             <Route path="/admin/stats" element={user?.role === "admin" ? <AdminStats /> : <Navigate to="/login" />} />
             <Route path="/admin/admins" element={user?.role === "admin" ? <AdminsManagement /> : <Navigate to="/login" />} />
             <Route path="/admin/create-accounts" element={user?.role === "admin" ? <CreateAccounts /> : <Navigate to="/login" />} />
+
+            {/* Department Head Routes */}
+            <Route path="/department-head/dashboard" element={user?.role === "department_head" ? <DepartmentHeadDashboard /> : <Navigate to="/login" />} />
+            <Route path="/department-head/create-accounts" element={user?.role === "department_head" ? <DepartmentHeadCreateAccounts /> : <Navigate to="/login" />} />
+            <Route path="/department-head/doctors" element={user?.role === "department_head" ? <DepartmentHeadDoctors /> : <Navigate to="/login" />} />
+            <Route path="/department-head/patients" element={user?.role === "department_head" ? <DepartmentHeadPatients /> : <Navigate to="/login" />} />
           </Routes>
         </BrowserRouter>
         <Toaster position="top-right" />
