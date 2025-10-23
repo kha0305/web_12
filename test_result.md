@@ -107,15 +107,18 @@ user_problem_statement: "Trưởng khoa có thể tạo và quản lý bác sĩ 
 backend:
   - task: "Department Head Create User Endpoint"
     implemented: true
-    working: "NA"
+    working: false
     file: "backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created POST /api/department-head/create-user endpoint. Department Head can create doctor and patient accounts only. Includes validation to prevent creating admin or department_head roles."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL: Endpoint returns 500 Internal Server Error due to ObjectId serialization issue. Role validation works correctly (rejects admin/department_head creation with 403). Authentication works. Need to fix MongoDB ObjectId handling in response - user_dict contains non-serializable ObjectId objects."
   
   - task: "Department Head Get Doctors Endpoint"
     implemented: true
