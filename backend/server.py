@@ -1164,6 +1164,158 @@ async def department_head_remove_doctor(doctor_id: str, current_user: dict = Dep
     
     return {"message": "Doctor removed successfully"}
 
+# Department Head - Create User (Doctor and Patient only)
+class DepartmentHeadCreateUserRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    role: str  # 'doctor' or 'patient' only
+    phone: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    address: Optional[str] = None
+    
+    # Doctor specific
+    specialty_id: Optional[str] = None
+    bio: Optional[str] = None
+    experience_years: Optional[int] = None
+    consultation_fee: Optional[float] = None
+    
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        if '@' not in v or '.' not in v.split('@')[1]:
+            raise ValueError('Invalid email format')
+        return v.lower()
+
+@api_router.post("/department-head/create-user")
+async def department_head_create_user(user_data: DepartmentHeadCreateUserRequest, current_user: dict = Depends(get_current_user)):
+    """Department Head creates doctor or patient accounts"""
+    if current_user["role"] != UserRole.DEPARTMENT_HEAD:
+        raise HTTPException(status_code=403, detail="Department Head access required")
+    
+    # Only allow doctor and patient roles
+    if user_data.role not in ['doctor', 'patient']:
+        raise HTTPException(status_code=403, detail="Department Head can only create doctor or patient accounts")
+    
+    # Check if user exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Hash password
+    hashed_password = hash_password(user_data.password)
+    
+    # Create user
+    user = User(
+        email=user_data.email,
+        full_name=user_data.full_name,
+        role=user_data.role
+    )
+    
+    user_dict = user.model_dump()
+    user_dict["password"] = hashed_password
+    user_dict["created_at"] = user_dict["created_at"].isoformat()
+    
+    # Add optional fields
+    if user_data.phone:
+        user_dict["phone"] = user_data.phone
+    if user_data.date_of_birth:
+        user_dict["date_of_birth"] = user_data.date_of_birth
+    if user_data.address:
+        user_dict["address"] = user_data.address
+    
+    await db.users.insert_one(user_dict)
+    
+    # If doctor, create doctor profile
+    if user_data.role == 'doctor' and user_data.specialty_id:
+        doctor_profile = {
+            "id": str(uuid.uuid4()),
+            "user_id": user.id,
+            "specialty_id": user_data.specialty_id,
+            "bio": user_data.bio or "",
+            "experience_years": user_data.experience_years or 0,
+            "consultation_fee": user_data.consultation_fee or 0,
+            "status": "approved",  # Department Head creates approved doctors
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.doctor_profiles.insert_one(doctor_profile)
+    
+    user_dict.pop("password")
+    return {"message": f"{user_data.role.capitalize()} account created successfully", "user": user_dict}
+
+@api_router.get("/department-head/doctors")
+async def department_head_get_doctors(current_user: dict = Depends(get_current_user)):
+    """Department Head views all doctors"""
+    if current_user["role"] != UserRole.DEPARTMENT_HEAD:
+        raise HTTPException(status_code=403, detail="Department Head access required")
+    
+    doctors = await db.doctor_profiles.find({}, {"_id": 0}).to_list(1000)
+    
+    # Get user info for each doctor
+    for doctor in doctors:
+        user = await db.users.find_one({"id": doctor["user_id"]}, {"_id": 0, "password": 0})
+        if user:
+            doctor["user_info"] = user
+        
+        # Get specialty info
+        if doctor.get("specialty_id"):
+            specialty = await db.specialties.find_one({"id": doctor["specialty_id"]}, {"_id": 0})
+            if specialty:
+                doctor["specialty_name"] = specialty["name"]
+    
+    return doctors
+
+@api_router.get("/department-head/patients")
+async def department_head_get_patients(current_user: dict = Depends(get_current_user)):
+    """Department Head views all patients"""
+    if current_user["role"] != UserRole.DEPARTMENT_HEAD:
+        raise HTTPException(status_code=403, detail="Department Head access required")
+    
+    patients = await db.users.find({"role": UserRole.PATIENT}, {"_id": 0, "password": 0}).to_list(1000)
+    return patients
+
+@api_router.delete("/department-head/remove-patient/{patient_id}")
+async def department_head_remove_patient(patient_id: str, current_user: dict = Depends(get_current_user)):
+    """Department Head removes a patient"""
+    if current_user["role"] != UserRole.DEPARTMENT_HEAD:
+        raise HTTPException(status_code=403, detail="Department Head access required")
+    
+    # Get patient
+    patient = await db.users.find_one({"id": patient_id, "role": UserRole.PATIENT}, {"_id": 0})
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    
+    # Delete patient and related data
+    await db.users.delete_one({"id": patient_id})
+    await db.appointments.delete_many({"patient_id": patient_id})
+    await db.chat_messages.delete_many({"$or": [{"sender_id": patient_id}, {"receiver_id": patient_id}]})
+    
+    return {"message": "Patient removed successfully"}
+
+@api_router.get("/department-head/stats")
+async def department_head_get_stats(current_user: dict = Depends(get_current_user)):
+    """Department Head views statistics"""
+    if current_user["role"] != UserRole.DEPARTMENT_HEAD:
+        raise HTTPException(status_code=403, detail="Department Head access required")
+    
+    # Get counts
+    total_doctors = await db.doctor_profiles.count_documents({})
+    approved_doctors = await db.doctor_profiles.count_documents({"status": "approved"})
+    pending_doctors = await db.doctor_profiles.count_documents({"status": "pending"})
+    total_patients = await db.users.count_documents({"role": UserRole.PATIENT})
+    total_appointments = await db.appointments.count_documents({})
+    completed_appointments = await db.appointments.count_documents({"status": "completed"})
+    
+    return {
+        "total_doctors": total_doctors,
+        "approved_doctors": approved_doctors,
+        "pending_doctors": pending_doctors,
+        "total_patients": total_patients,
+        "total_appointments": total_appointments,
+        "completed_appointments": completed_appointments
+    }
+
+
 # Include router in the main app after all routes are defined
 app.include_router(api_router, prefix=API_PREFIX)
 
