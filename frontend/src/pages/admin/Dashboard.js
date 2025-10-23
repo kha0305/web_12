@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '@/App';
 import { Button } from '@/components/ui/button';
-import { Users, FileText, BarChart, LogOut } from 'lucide-react';
+import { Users, FileText, BarChart, LogOut, Shield } from 'lucide-react';
 import Layout from '@/components/Layout';
 
 export default function AdminDashboard() {
