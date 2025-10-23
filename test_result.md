@@ -249,6 +249,18 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Completed admin management UI implementation with full features: create admin form with permissions, admin list with edit/delete capabilities, integrated into routing and navigation. Only admins with can_create_admins permission can access this feature."
+  
+  - task: "Admin Create User Accounts (Patient, Doctor, Department Head)"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py, frontend/src/pages/admin/CreateAccounts.js, backend/create_sample_data.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented full account creation system for admin. Backend: Added POST /api/admin/create-user endpoint supporting patient, doctor, and department_head roles. Frontend: Created comprehensive form with role selection and role-specific fields. Created sample data script with 3 patients, 3 doctors, 1 department head, and 8 specialties. All test accounts created successfully."
 
 metadata:
   created_by: "main_agent"
