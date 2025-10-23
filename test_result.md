@@ -167,15 +167,18 @@ backend:
   
   - task: "Department Head Stats Endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/department-head/stats endpoint. Returns statistics: total_doctors, approved_doctors, pending_doctors, total_patients, total_appointments, completed_appointments."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Successfully fetched all required statistics (total_doctors: 6, approved_doctors: 5, pending_doctors: 1, total_patients: 8, total_appointments: 1, completed_appointments: 0). Authentication working correctly. Returns 403 for non-department_head users."
   
   - task: "AI Chatbot - Health Consultation"
     implemented: true
