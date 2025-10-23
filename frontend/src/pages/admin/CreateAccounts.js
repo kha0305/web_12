@@ -8,6 +8,7 @@ import Layout from '@/components/Layout';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { UserPlus, Eye, EyeOff, Users, Stethoscope, Shield } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CreateAccounts() {
   const { token } = useContext(AuthContext);
