@@ -8,31 +8,32 @@ export default function Layout({ children }) {
   const location = useLocation();
   const role = location.pathname.split('/')[1];
   const { user } = useContext(AuthContext);
+  const { t } = useLanguage();
 
   const patientLinks = [
-    { path: '/patient/dashboard', icon: Home, label: 'Trang chủ' },
-    { path: '/patient/search-doctors', icon: Users, label: 'Tìm bác sĩ' },
-    { path: '/patient/appointments', icon: Calendar, label: 'Lịch hẹn' }
+    { path: '/patient/dashboard', icon: Home, label: t('home') },
+    { path: '/patient/search-doctors', icon: Users, label: t('findDoctor') },
+    { path: '/patient/appointments', icon: Calendar, label: t('appointments') }
   ];
 
   const doctorLinks = [
-    { path: '/doctor/dashboard', icon: Home, label: 'Trang chủ' },
-    { path: '/doctor/appointments', icon: Calendar, label: 'Lịch hẹn' },
-    { path: '/doctor/profile', icon: User, label: 'Hồ sơ' },
-    { path: '/doctor/schedule', icon: Clock, label: 'Lịch làm việc' }
+    { path: '/doctor/dashboard', icon: Home, label: t('home') },
+    { path: '/doctor/appointments', icon: Calendar, label: t('appointments') },
+    { path: '/doctor/profile', icon: User, label: t('profile') },
+    { path: '/doctor/schedule', icon: Clock, label: t('schedule') }
   ];
 
   let adminLinks = [
-    { path: '/admin/dashboard', icon: Home, label: 'Trang chủ' },
-    { path: '/admin/create-accounts', icon: UserPlus, label: 'Tạo tài khoản' },
-    { path: '/admin/doctors', icon: Users, label: 'Bác sĩ' },
-    { path: '/admin/patients', icon: FileText, label: 'Bệnh nhân' },
-    { path: '/admin/stats', icon: BarChart, label: 'Thống kê' }
+    { path: '/admin/dashboard', icon: Home, label: t('home') },
+    { path: '/admin/create-accounts', icon: UserPlus, label: t('createAccounts') },
+    { path: '/admin/doctors', icon: Users, label: t('doctors') },
+    { path: '/admin/patients', icon: FileText, label: t('patients') },
+    { path: '/admin/stats', icon: BarChart, label: t('stats') }
   ];
 
   // Add Admins management link if user has permission
   if (role === 'admin' && user?.admin_permissions?.can_create_admins) {
-    adminLinks.push({ path: '/admin/admins', icon: Shield, label: 'Quản lý Admin' });
+    adminLinks.push({ path: '/admin/admins', icon: Shield, label: t('admins') });
   }
 
   const links = role === 'patient' ? patientLinks : role === 'doctor' ? doctorLinks : role === 'admin' ? adminLinks : [];
