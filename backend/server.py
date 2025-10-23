@@ -1241,6 +1241,8 @@ async def department_head_create_user(user_data: DepartmentHeadCreateUserRequest
         }
         await db.doctor_profiles.insert_one(doctor_profile)
     
+    # Remove MongoDB _id before returning
+    user_dict.pop("_id", None)
     user_dict.pop("password")
     return {"message": f"{user_data.role.capitalize()} account created successfully", "user": user_dict}
 
