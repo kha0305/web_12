@@ -37,7 +37,17 @@ export default function Layout({ children }) {
     adminLinks.push({ path: '/admin/admins', icon: Shield, label: t('admins') });
   }
 
-  const links = role === 'patient' ? patientLinks : role === 'doctor' ? doctorLinks : role === 'admin' ? adminLinks : [];
+  const departmentHeadLinks = [
+    { path: '/department-head/dashboard', icon: Home, label: t('home') },
+    { path: '/department-head/create-accounts', icon: UserPlus, label: t('createAccounts') },
+    { path: '/department-head/doctors', icon: Users, label: t('doctors') },
+    { path: '/department-head/patients', icon: FileText, label: t('patients') }
+  ];
+
+  const links = role === 'patient' ? patientLinks 
+    : role === 'doctor' ? doctorLinks 
+    : role === 'department-head' ? departmentHeadLinks
+    : role === 'admin' ? adminLinks : [];
 
   if (links.length === 0) {
     return <>{children}</>;
