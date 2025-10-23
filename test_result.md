@@ -261,6 +261,18 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Implemented full account creation system for admin. Backend: Added POST /api/admin/create-user endpoint supporting patient, doctor, and department_head roles. Frontend: Created comprehensive form with role selection and role-specific fields. Created sample data script with 3 patients, 3 doctors, 1 department head, and 8 specialties. All test accounts created successfully."
+  
+  - task: "Multi-language Support (Vietnamese/English)"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/contexts/LanguageContext.js, frontend/src/components/LanguageToggle.js, frontend/src/App.js, frontend/src/components/Layout.js, frontend/src/pages/admin/*"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented i18n system with React Context. Created LanguageContext with translations for Vietnamese and English. Added LanguageToggle component in sidebar. Applied translations to Admin Dashboard and CreateAccounts pages. Language preference saved to localStorage."
 
 metadata:
   created_by: "main_agent"
