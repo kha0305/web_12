@@ -26,7 +26,14 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <QuickActionCard
+              icon={<UserPlus className="w-8 h-8" />}
+              title="Tạo tài khoản"
+              description="Tạo tài khoản bệnh nhân, bác sĩ, trưởng khoa"
+              onClick={() => navigate('/admin/create-accounts')}
+              testId="create-accounts-card"
+            />
             <QuickActionCard
               icon={<Users className="w-8 h-8" />}
               title="Quản lý bác sĩ"
