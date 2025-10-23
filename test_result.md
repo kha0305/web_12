@@ -122,15 +122,18 @@ backend:
   
   - task: "Department Head Get Doctors Endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/department-head/doctors endpoint. Returns all doctors with user info and specialty details."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Successfully fetched 6 doctors. Response includes user_info and specialty_name fields as expected. Authentication working correctly. Returns 403 for non-department_head users."
   
   - task: "Department Head Get Patients Endpoint"
     implemented: true
