@@ -34,7 +34,7 @@ export default function AdminDoctors() {
       setDoctors(response.data);
       setFilteredDoctors(response.data);
     } catch (error) {
-      toast.error('Không thể tải danh sách bác sĩ');
+      toast.error(t('loadError'));
     } finally {
       setLoading(false);
     }
