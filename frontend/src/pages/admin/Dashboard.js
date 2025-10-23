@@ -9,6 +9,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
+  const { t } = useLanguage();
 
   return (
     <Layout>
@@ -17,12 +18,12 @@ export default function AdminDashboard() {
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Xin chào, Admin {user?.full_name}!</h1>
-              <p className="text-gray-600 mt-1">Quản lý hệ thống MediSchedule</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('welcomeAdmin')} {user?.full_name}!</h1>
+              <p className="text-gray-600 mt-1">{t('manageSystem')}</p>
             </div>
             <Button data-testid="logout-btn" variant="outline" onClick={logout}>
               <LogOut className="w-4 h-4 mr-2" />
-              Đăng xuất
+              {t('logout')}
             </Button>
           </div>
 
