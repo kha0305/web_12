@@ -1320,6 +1320,260 @@ async def department_head_get_stats(current_user: dict = Depends(get_current_use
         "completed_appointments": completed_appointments
     }
 
+# AI Features
+import openai
+from openai import OpenAI
+
+# Initialize OpenAI client
+openai_api_key = os.environ.get('OPENAI_API_KEY')
+if openai_api_key:
+    openai_client = OpenAI(api_key=openai_api_key)
+else:
+    openai_client = None
+    logger.warning("OPENAI_API_KEY not set. AI features will not be available.")
+
+# AI Models
+class AIChatMessage(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+
+class AIRecommendDoctorRequest(BaseModel):
+    symptoms: str
+    preferred_specialty: Optional[str] = None
+
+class AIChatResponse(BaseModel):
+    response: str
+    session_id: str
+
+# AI Endpoints
+@api_router.post("/ai/chat", response_model=AIChatResponse)
+async def ai_health_consultation(chat_data: AIChatMessage, current_user: dict = Depends(get_current_user)):
+    """AI-powered health consultation chatbot"""
+    if not openai_client:
+        raise HTTPException(status_code=503, detail="AI service not configured")
+    
+    # Generate or use existing session_id
+    session_id = chat_data.session_id or str(uuid.uuid4())
+    
+    # Get chat history for this session
+    chat_history = await db.ai_chat_history.find(
+        {"patient_id": current_user["id"], "session_id": session_id}
+    ).sort("created_at", 1).to_list(50)
+    
+    # Build messages for OpenAI
+    messages = [
+        {
+            "role": "system",
+            "content": """You are a helpful medical AI assistant. Provide health information and guidance, but always remind users to consult with healthcare professionals for proper diagnosis and treatment. 
+            
+Important guidelines:
+- Be empathetic and supportive
+- Provide general health information
+- Never diagnose specific conditions
+- Always recommend seeing a doctor for serious concerns
+- Ask clarifying questions when needed"""
+        }
+    ]
+    
+    # Add chat history
+    for msg in chat_history:
+        messages.append({"role": "user", "content": msg["user_message"]})
+        messages.append({"role": "assistant", "content": msg["ai_response"]})
+    
+    # Add current message
+    messages.append({"role": "user", "content": chat_data.message})
+    
+    try:
+        # Call OpenAI API
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        ai_response = response.choices[0].message.content
+        
+        # Save to chat history
+        chat_record = {
+            "patient_id": current_user["id"],
+            "session_id": session_id,
+            "user_message": chat_data.message,
+            "ai_response": ai_response,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.ai_chat_history.insert_one(chat_record)
+        
+        return AIChatResponse(response=ai_response, session_id=session_id)
+        
+    except Exception as e:
+        logger.error(f"OpenAI API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
+
+@api_router.post("/ai/recommend-doctor")
+async def ai_recommend_doctor(request_data: AIRecommendDoctorRequest, current_user: dict = Depends(get_current_user)):
+    """AI-powered doctor recommendation based on symptoms"""
+    if not openai_client:
+        raise HTTPException(status_code=503, detail="AI service not configured")
+    
+    # Get all specialties
+    specialties = await db.specialties.find({}, {"_id": 0}).to_list(100)
+    specialty_list = [s["name"] for s in specialties]
+    
+    # Get all approved doctors with their specialties
+    doctors = await db.doctor_profiles.find({"status": "approved"}, {"_id": 0}).to_list(1000)
+    
+    # Enrich doctors with user info and specialty name
+    doctor_info_list = []
+    for doctor in doctors:
+        user = await db.users.find_one({"id": doctor["user_id"]}, {"_id": 0, "password": 0})
+        specialty = await db.specialties.find_one({"id": doctor["specialty_id"]}, {"_id": 0})
+        
+        if user and specialty:
+            doctor_info_list.append({
+                "doctor_id": doctor["user_id"],
+                "name": user["full_name"],
+                "specialty": specialty["name"],
+                "experience_years": doctor.get("experience_years", 0),
+                "consultation_fee": doctor.get("consultation_fee", 0),
+                "bio": doctor.get("bio", "")
+            })
+    
+    # Build AI prompt
+    system_message = f"""You are a medical AI assistant helping patients find the right doctor.
+
+Available specialties: {', '.join(specialty_list)}
+
+Available doctors:
+{chr(10).join([f"- Dr. {d['name']}, {d['specialty']}, {d['experience_years']} years experience" for d in doctor_info_list[:20]])}
+
+Based on the patient's symptoms, recommend:
+1. The most appropriate medical specialty
+2. Specific doctors from the list above (1-3 doctors)
+3. Brief explanation why
+
+Format your response as JSON:
+{{
+  "recommended_specialty": "specialty name",
+  "recommended_doctors": [
+    {{
+      "doctor_id": "id",
+      "name": "Dr. Name",
+      "specialty": "specialty",
+      "reason": "why this doctor is suitable"
+    }}
+  ],
+  "explanation": "detailed explanation",
+  "urgency_level": "low|medium|high"
+}}"""
+    
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": f"Patient symptoms: {request_data.symptoms}"}
+            ],
+            temperature=0.5,
+            response_format={"type": "json_object"}
+        )
+        
+        ai_recommendation = response.choices[0].message.content
+        recommendation_data = eval(ai_recommendation)  # Parse JSON response
+        
+        return recommendation_data
+        
+    except Exception as e:
+        logger.error(f"AI recommendation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
+
+@api_router.post("/ai/summarize-conversation/{appointment_id}")
+async def ai_summarize_conversation(appointment_id: str, current_user: dict = Depends(get_current_user)):
+    """AI-powered conversation summarization"""
+    if not openai_client:
+        raise HTTPException(status_code=503, detail="AI service not configured")
+    
+    # Verify appointment exists
+    appointment = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Verify user is part of the appointment
+    if current_user["id"] not in [appointment["patient_id"], appointment["doctor_id"]]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Get chat messages for this appointment
+    messages = await db.chat_messages.find(
+        {"appointment_id": appointment_id}
+    ).sort("sent_at", 1).to_list(1000)
+    
+    if not messages:
+        return {"summary": "No messages to summarize", "key_points": []}
+    
+    # Build conversation text
+    conversation_text = ""
+    for msg in messages:
+        sender = await db.users.find_one({"id": msg["sender_id"]}, {"_id": 0})
+        sender_name = sender["full_name"] if sender else "Unknown"
+        sender_role = sender["role"] if sender else "unknown"
+        conversation_text += f"{sender_role.capitalize()} ({sender_name}): {msg['message']}\n"
+    
+    # AI prompt for summarization
+    system_message = """You are a medical AI assistant. Summarize the doctor-patient conversation.
+
+Provide:
+1. Brief overview (2-3 sentences)
+2. Key points discussed
+3. Any recommendations or next steps mentioned
+4. Important symptoms or concerns
+
+Format as JSON:
+{
+  "summary": "brief overview",
+  "key_points": ["point 1", "point 2", ...],
+  "symptoms_mentioned": ["symptom 1", "symptom 2", ...],
+  "recommendations": ["recommendation 1", "recommendation 2", ...]
+}"""
+    
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": f"Conversation:\n{conversation_text}"}
+            ],
+            temperature=0.3,
+            response_format={"type": "json_object"}
+        )
+        
+        summary = response.choices[0].message.content
+        summary_data = eval(summary)
+        
+        return summary_data
+        
+    except Exception as e:
+        logger.error(f"AI summarization error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
+
+@api_router.get("/ai/chat-history")
+async def get_ai_chat_history(session_id: Optional[str] = None, current_user: dict = Depends(get_current_user)):
+    """Get patient's AI chat history"""
+    query = {"patient_id": current_user["id"]}
+    if session_id:
+        query["session_id"] = session_id
+    
+    chat_history = await db.ai_chat_history.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    
+    # Group by session_id
+    sessions = {}
+    for chat in chat_history:
+        sid = chat["session_id"]
+        if sid not in sessions:
+            sessions[sid] = []
+        sessions[sid].append(chat)
+    
+    return {"sessions": sessions, "total_messages": len(chat_history)}
+
 
 # Include router in the main app after all routes are defined
 app.include_router(api_router, prefix=API_PREFIX)
