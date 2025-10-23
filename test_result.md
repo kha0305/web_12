@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Nâng cấp hệ thống đặt lịch khám bệnh MediSchedule với AI features: chatbot tư vấn sức khỏe, gợi ý bác sĩ dựa trên triệu chứng, tóm tắt hội thoại. Admin có thể tạo tài khoản admin mới. Sử dụng OpenAI GPT-4o với Emergent LLM Key."
+user_problem_statement: "Trưởng khoa có thể tạo và quản lý bác sĩ và bệnh nhân như admin. Tạo UI riêng cho Department Head với quyền chỉ xoay quanh bác sĩ và bệnh nhân (không thể tạo admin, không thể quản lý chuyên khoa)."
 
 backend:
   - task: "OpenAI Integration Setup"
