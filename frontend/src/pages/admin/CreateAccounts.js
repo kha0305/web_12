@@ -182,7 +182,7 @@ export default function CreateAccounts() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email">{t('email')} *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -195,7 +195,7 @@ export default function CreateAccounts() {
                 </div>
 
                 <div>
-                  <Label htmlFor="password">Mật khẩu *</Label>
+                  <Label htmlFor="password">{t('password')} *</Label>
                   <div className="relative mt-2">
                     <Input
                       id="password"
