@@ -753,6 +753,8 @@ async def create_admin_account(user_data: UserCreate, current_user: dict = Depen
     
     await db.users.insert_one(user_dict)
     
+    # Remove MongoDB _id before returning
+    user_dict.pop("_id", None)
     user_dict.pop("password")
     return {"message": "Admin account created successfully", "user": user_dict}
 
