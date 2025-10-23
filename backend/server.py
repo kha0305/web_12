@@ -821,6 +821,36 @@ async def delete_admin_account(admin_id: str, current_user: dict = Depends(get_c
     
     return {"message": "Admin account deleted successfully"}
 
+# Admin - Delete Any User Account (Patient, Doctor, Department Head)
+@api_router.delete("/admin/delete-user/{user_id}")
+async def admin_delete_user(user_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Prevent self-deletion
+    if user_id == current_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    # Get user info
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # If doctor, also delete doctor profile
+    if user["role"] == UserRole.DOCTOR:
+        await db.doctor_profiles.delete_one({"user_id": user_id})
+        # Also delete related appointments if needed
+        await db.appointments.delete_many({"doctor_id": user_id})
+    
+    # If patient, delete related appointments
+    if user["role"] == UserRole.PATIENT:
+        await db.appointments.delete_many({"patient_id": user_id})
+    
+    # Delete user
+    await db.users.delete_one({"id": user_id})
+    
+    return {"message": f"{user['role'].capitalize()} account deleted successfully"}
+
 # Admin - Create User Accounts (Patient, Doctor, Department Head)
 class CreateUserAccountRequest(BaseModel):
     email: str
