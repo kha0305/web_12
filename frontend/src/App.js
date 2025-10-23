@@ -118,6 +118,7 @@ function App() {
         <Toaster position="top-right" />
       </div>
     </AuthContext.Provider>
+    </LanguageProvider>
   );
 }
 
