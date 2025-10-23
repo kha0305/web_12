@@ -87,10 +87,10 @@ export default function CreateAccounts() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      toast.success(`Tạo tài khoản ${getRoleName(selectedRole)} thành công!`);
+      toast.success(`${t('createSuccess')} ${getRoleName(selectedRole)}!`);
       resetForm();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Không thể tạo tài khoản');
+      toast.error(error.response?.data?.detail || t('createError'));
     } finally {
       setLoading(false);
     }
