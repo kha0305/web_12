@@ -108,6 +108,7 @@ function App() {
             <Route path="/admin/doctors" element={user?.role === "admin" ? <AdminDoctors /> : <Navigate to="/login" />} />
             <Route path="/admin/patients" element={user?.role === "admin" ? <AdminPatients /> : <Navigate to="/login" />} />
             <Route path="/admin/stats" element={user?.role === "admin" ? <AdminStats /> : <Navigate to="/login" />} />
+            <Route path="/admin/admins" element={user?.role === "admin" ? <AdminsManagement /> : <Navigate to="/login" />} />
           </Routes>
         </BrowserRouter>
         <Toaster position="top-right" />
