@@ -164,53 +164,64 @@ function DoctorCard({ doctor, onApprove, onDelete, t }) {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h3 className="font-bold text-xl text-gray-900">{doctor.full_name || 'Bác sĩ'}</h3>
+              <h3 className="font-bold text-xl text-gray-900">{doctor.full_name || t('doctor')}</h3>
               <span className={`px-3 py-1 rounded-full text-xs font-semibold border flex items-center gap-1 ${statusColors[doctor.status]}`}>
                 {statusIcons[doctor.status]}
-                {statusText[doctor.status]}
+                {t(doctor.status)}
               </span>
             </div>
             <p className="text-gray-600 mb-2">{doctor.email}</p>
             {doctor.specialty_name && (
-              <p className="text-teal-600 font-semibold mb-2">Chuyên khoa: {doctor.specialty_name}</p>
+              <p className="text-teal-600 font-semibold mb-2">{t('specialty')}: {doctor.specialty_name}</p>
             )}
             {doctor.bio && (
               <p className="text-gray-600 text-sm mb-2 line-clamp-2">{doctor.bio}</p>
             )}
             <div className="flex gap-4 text-sm text-gray-600">
               {doctor.experience_years > 0 && (
-                <span>{doctor.experience_years} năm kinh nghiệm</span>
+                <span>{doctor.experience_years} {t('years')} {t('experience')}</span>
               )}
               {doctor.consultation_fee > 0 && (
-                <span>Phí: {doctor.consultation_fee.toLocaleString()} VNĐ</span>
+                <span>{t('fee')}: {doctor.consultation_fee.toLocaleString()} VNĐ</span>
               )}
             </div>
           </div>
         </div>
         
-        {doctor.status === 'pending' && (
-          <div className="flex gap-2">
-            <Button 
-              data-testid={`approve-${doctor.user_id}`}
-              onClick={() => onApprove(doctor.user_id, 'approved')} 
-              className="bg-green-600 hover:bg-green-700"
-              size="sm"
-            >
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Duyệt
-            </Button>
-            <Button 
-              data-testid={`reject-${doctor.user_id}`}
-              onClick={() => onApprove(doctor.user_id, 'rejected')} 
-              variant="outline"
-              className="border-red-300 text-red-600 hover:bg-red-50"
-              size="sm"
-            >
-              <XCircle className="w-4 h-4 mr-1" />
-              Từ chối
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          {doctor.status === 'pending' && (
+            <>
+              <Button 
+                data-testid={`approve-${doctor.user_id}`}
+                onClick={() => onApprove(doctor.user_id, 'approved')} 
+                className="bg-green-600 hover:bg-green-700"
+                size="sm"
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                {t('approve')}
+              </Button>
+              <Button 
+                data-testid={`reject-${doctor.user_id}`}
+                onClick={() => onApprove(doctor.user_id, 'rejected')} 
+                variant="outline"
+                className="border-red-300 text-red-600 hover:bg-red-50"
+                size="sm"
+              >
+                <XCircle className="w-4 h-4 mr-1" />
+                {t('reject')}
+              </Button>
+            </>
+          )}
+          <Button 
+            onClick={() => onDelete(doctor.user_id, doctor.full_name)} 
+            variant="outline"
+            className="border-red-300 text-red-600 hover:bg-red-50"
+            size="sm"
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            {t('remove')}
+          </Button>
+        </div>
       </div>
     </div>
   );
