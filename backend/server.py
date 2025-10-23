@@ -821,6 +821,98 @@ async def delete_admin_account(admin_id: str, current_user: dict = Depends(get_c
     
     return {"message": "Admin account deleted successfully"}
 
+# Admin - Create User Accounts (Patient, Doctor, Department Head)
+class CreateUserAccountRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    role: str  # patient, doctor, department_head
+    phone: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    address: Optional[str] = None
+    # For doctor role
+    specialty_id: Optional[str] = None
+    bio: Optional[str] = None
+    experience_years: Optional[int] = None
+    consultation_fee: Optional[float] = None
+    # For department_head role
+    admin_permissions: Optional[dict] = None
+    
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        if '@' not in v or '.' not in v.split('@')[1]:
+            raise ValueError('Invalid email format')
+        return v.lower()
+
+@api_router.post("/admin/create-user")
+async def admin_create_user(user_data: CreateUserAccountRequest, current_user: dict = Depends(get_current_user)):
+    if current_user["role"] != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Validate role
+    if not UserRole.is_valid(user_data.role):
+        raise HTTPException(status_code=400, detail="Invalid role")
+    
+    # Check if user exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Hash password
+    hashed_password = hash_password(user_data.password)
+    
+    # Create user
+    user = User(
+        email=user_data.email,
+        full_name=user_data.full_name,
+        role=user_data.role,
+        admin_permissions=user_data.admin_permissions if user_data.role == UserRole.DEPARTMENT_HEAD else None
+    )
+    
+    user_dict = user.model_dump()
+    user_dict["password"] = hashed_password
+    user_dict["created_at"] = user_dict["created_at"].isoformat()
+    
+    # Add optional fields
+    if user_data.phone:
+        user_dict["phone"] = user_data.phone
+    if user_data.date_of_birth:
+        user_dict["date_of_birth"] = user_data.date_of_birth
+    if user_data.address:
+        user_dict["address"] = user_data.address
+    
+    # Set default permissions for department_head
+    if user_data.role == UserRole.DEPARTMENT_HEAD:
+        if not user_data.admin_permissions:
+            user_dict["admin_permissions"] = {
+                "can_manage_doctors": True,
+                "can_manage_patients": True,
+                "can_manage_appointments": True,
+                "can_view_stats": True,
+                "can_manage_specialties": False,
+                "can_create_admins": False
+            }
+    
+    await db.users.insert_one(user_dict)
+    
+    # If doctor, create doctor profile
+    if user_data.role == UserRole.DOCTOR and user_data.specialty_id:
+        doctor_profile = {
+            "id": str(uuid.uuid4()),
+            "user_id": user.id,
+            "specialty_id": user_data.specialty_id,
+            "bio": user_data.bio or "",
+            "experience_years": user_data.experience_years or 0,
+            "consultation_fee": user_data.consultation_fee or 0,
+            "status": "approved",  # Admin creates approved doctors
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.doctor_profiles.insert_one(doctor_profile)
+    
+    user_dict.pop("password")
+    return {"message": f"{user_data.role.capitalize()} account created successfully", "user": user_dict}
+
 # Department Head Models
 class PromoteToDepartmentHeadRequest(BaseModel):
     doctor_id: str
