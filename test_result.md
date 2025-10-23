@@ -273,6 +273,7 @@ test_plan:
     - "Admin Create Admin UI"
     - "Admin Create Admin Account"
     - "Admin Permission Management"
+    - "Admin Create User Accounts (Patient, Doctor, Department Head)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
