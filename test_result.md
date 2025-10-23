@@ -430,3 +430,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Completed Department Head feature implementation. Backend: Created 5 new endpoints (/api/department-head/create-user, /doctors, /patients, /remove-patient/{id}, /stats). Department Head can ONLY create doctor and patient accounts (validation prevents admin/department_head creation). Frontend: Created 4 new pages (Dashboard, CreateAccounts, Doctors, Patients) with separate UI from Admin. Updated routing, navigation, and added 48 translations (VI/EN). Department Head has independent interface focused on doctor and patient management only. Ready for testing."
+  - agent: "main"
+    message: "Starting comprehensive backend testing. Services restarted and running. Priority: Test all Department Head endpoints, AI features, and Admin permission system. Backend is connected to MongoDB successfully. Need to verify all endpoints work correctly with proper authentication and authorization."
