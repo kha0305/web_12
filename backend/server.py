@@ -850,58 +850,6 @@ async def health_check():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "unhealthy", "database": "disconnected", "error": str(e)}
         )
-        
-        # AI summarization
-        session_id = f"summary_{appointment_id}"
-        chat = LlmChat(
-            api_key=os.environ['EMERGENT_LLM_KEY'],
-            session_id=session_id,
-            system_message="""Bạn là trợ lý y tế chuyên tóm tắt cuộc hội thoại giữa bác sĩ và bệnh nhân.
-            
-            Nhiệm vụ:
-            - Tóm tắt nội dung chính của cuộc trao đổi
-            - Nêu rõ triệu chứng, chẩn đoán (nếu có), và hướng điều trị
-            - Sử dụng ngôn ngữ y khoa chuyên nghiệp nhưng dễ hiểu
-            - Trả lời bằng tiếng Việt
-            - Tóm tắt súc tích, khoảng 100-200 từ"""
-        ).with_model("openai", "gpt-4o")
-        
-        user_message = UserMessage(text=f"Hãy tóm tắt cuộc hội thoại sau:\n\n{conversation_text}")
-        summary = await chat.send_message(user_message)
-        
-        # Save summary to appointment
-        await db.appointments.update_one(
-            {"id": appointment_id},
-            {"$set": {
-                "conversation_summary": summary,
-                "summary_created_at": datetime.now(timezone.utc).isoformat(),
-                "summary_created_by": current_user["id"]
-            }}
-        )
-        
-        return {
-            "summary": summary,
-            "message_count": len(messages)
-        }
-    
-    except Exception as e:
-        logger.error(f"AI Summarize Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"AI summarization error: {str(e)}")
-
-# Get AI chat history
-@api_router.get("/ai/chat-history")
-async def get_ai_chat_history(current_user: dict = Depends(get_current_user)):
-    """Lấy lịch sử chat với AI của bệnh nhân"""
-    if current_user["role"] != UserRole.PATIENT:
-        raise HTTPException(status_code=403, detail="Patient access required")
-    
-    session_id = f"patient_{current_user['id']}_health_chat"
-    history = await db.ai_chat_history.find(
-        {"session_id": session_id},
-        {"_id": 0}
-    ).sort("created_at", -1).limit(50).to_list(50)
-    
-    return history
 
 # Department Head Routes
 @api_router.post("/department-head/promote")
