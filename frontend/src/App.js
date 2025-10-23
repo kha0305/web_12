@@ -83,14 +83,15 @@ function App() {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
-      <div className="App">
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <LanguageProvider>
+      <AuthContext.Provider value={{ user, token, login, logout }}>
+        <div className="App">
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
             {/* Patient Routes */}
             <Route path="/patient/dashboard" element={user?.role === "patient" ? <PatientDashboard /> : <Navigate to="/login" />} />
