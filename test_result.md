@@ -272,15 +272,18 @@ backend:
   
   - task: "AI Chat History"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "low"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/ai/chat-history endpoint to retrieve patient's AI chat history."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Endpoint is implemented (lines 1558-1575 in server.py) and functioning correctly. Successfully retrieves chat history with proper session grouping. Authentication working correctly - rejects unauthorized access with 403. Returns proper JSON structure with sessions and total_messages count."
 
 frontend:
   - task: "Department Head Dashboard"
