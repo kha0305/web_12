@@ -105,17 +105,65 @@
 user_problem_statement: "Trưởng khoa có thể tạo và quản lý bác sĩ và bệnh nhân như admin. Tạo UI riêng cho Department Head với quyền chỉ xoay quanh bác sĩ và bệnh nhân (không thể tạo admin, không thể quản lý chuyên khoa)."
 
 backend:
-  - task: "OpenAI Integration Setup"
+  - task: "Department Head Create User Endpoint"
     implemented: true
     working: "NA"
-    file: "backend/server.py, backend/.env, backend/requirements.txt"
+    file: "backend/server.py"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: "NA"
         agent: "main"
-        comment: "Installed emergentintegrations, added EMERGENT_LLM_KEY to .env, imported LlmChat"
+        comment: "Created POST /api/department-head/create-user endpoint. Department Head can create doctor and patient accounts only. Includes validation to prevent creating admin or department_head roles."
+  
+  - task: "Department Head Get Doctors Endpoint"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/department-head/doctors endpoint. Returns all doctors with user info and specialty details."
+  
+  - task: "Department Head Get Patients Endpoint"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/department-head/patients endpoint. Returns all patients excluding password field."
+  
+  - task: "Department Head Remove Patient Endpoint"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created DELETE /api/department-head/remove-patient/{patient_id} endpoint. Deletes patient and all related data (appointments, chat messages)."
+  
+  - task: "Department Head Stats Endpoint"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Created GET /api/department-head/stats endpoint. Returns statistics: total_doctors, approved_doctors, pending_doctors, total_patients, total_appointments, completed_appointments."
   
   - task: "AI Chatbot - Health Consultation"
     implemented: true
