@@ -21,12 +21,17 @@ export default function Layout({ children }) {
     { path: '/doctor/schedule', icon: Clock, label: 'Lịch làm việc' }
   ];
 
-  const adminLinks = [
+  let adminLinks = [
     { path: '/admin/dashboard', icon: Home, label: 'Trang chủ' },
     { path: '/admin/doctors', icon: Users, label: 'Bác sĩ' },
     { path: '/admin/patients', icon: FileText, label: 'Bệnh nhân' },
     { path: '/admin/stats', icon: BarChart, label: 'Thống kê' }
   ];
+
+  // Add Admins management link if user has permission
+  if (role === 'admin' && user?.admin_permissions?.can_create_admins) {
+    adminLinks.push({ path: '/admin/admins', icon: Shield, label: 'Quản lý Admin' });
+  }
 
   const links = role === 'patient' ? patientLinks : role === 'doctor' ? doctorLinks : role === 'admin' ? adminLinks : [];
 
