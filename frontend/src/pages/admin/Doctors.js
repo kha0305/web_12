@@ -88,7 +88,7 @@ export default function AdminDoctors() {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-teal-50 to-blue-50 p-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Quản lý bác sĩ</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('doctorManagement')}</h1>
 
           {/* Filters */}
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
@@ -98,7 +98,7 @@ export default function AdminDoctors() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <Input
                     data-testid="search-input"
-                    placeholder="Tìm theo tên, email hoặc chuyên khoa..."
+                    placeholder={t('searchDoctors')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -111,10 +111,10 @@ export default function AdminDoctors() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="pending">Chờ duyệt</SelectItem>
-                    <SelectItem value="approved">Đã duyệt</SelectItem>
-                    <SelectItem value="rejected">Đã từ chối</SelectItem>
+                    <SelectItem value="all">{t('all')}</SelectItem>
+                    <SelectItem value="pending">{t('pending')}</SelectItem>
+                    <SelectItem value="approved">{t('approved')}</SelectItem>
+                    <SelectItem value="rejected">{t('rejected')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -123,16 +123,16 @@ export default function AdminDoctors() {
 
           {/* Doctors List */}
           {loading ? (
-            <p className="text-center text-gray-500">Đang tải...</p>
+            <p className="text-center text-gray-500">{t('loading')}</p>
           ) : filteredDoctors.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center">
               <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Không tìm thấy bác sĩ phù hợp</p>
+              <p className="text-gray-500">{t('noData')}</p>
             </div>
           ) : (
             <div className="space-y-4">
               {filteredDoctors.map(doctor => (
-                <DoctorCard key={doctor.user_id} doctor={doctor} onApprove={handleApprove} />
+                <DoctorCard key={doctor.user_id} doctor={doctor} onApprove={handleApprove} onDelete={handleDelete} t={t} />
               ))}
             </div>
           )}
