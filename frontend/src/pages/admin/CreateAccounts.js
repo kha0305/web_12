@@ -253,9 +253,9 @@ export default function CreateAccounts() {
               {/* Doctor Specific Fields */}
               {selectedRole === 'doctor' && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-700 border-b pb-2">Thông tin bác sĩ</h3>
+                  <h3 className="font-semibold text-gray-700 border-b pb-2">{t('doctorInfo')}</h3>
                   <div>
-                    <Label htmlFor="specialty_id">Chuyên khoa *</Label>
+                    <Label htmlFor="specialty_id">{t('specialty')} *</Label>
                     <select
                       id="specialty_id"
                       value={formData.specialty_id}
@@ -263,7 +263,7 @@ export default function CreateAccounts() {
                       required
                       className="mt-2 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                     >
-                      <option value="">Chọn chuyên khoa</option>
+                      <option value="">{t('selectSpecialty')}</option>
                       {specialties.map((specialty) => (
                         <option key={specialty.id} value={specialty.id}>
                           {specialty.name}
