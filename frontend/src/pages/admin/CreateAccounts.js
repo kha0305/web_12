@@ -12,6 +12,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CreateAccounts() {
   const { token } = useContext(AuthContext);
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState('patient');
