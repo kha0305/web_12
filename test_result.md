@@ -258,10 +258,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "AI Chatbot - Health Consultation"
-    - "AI Doctor Recommendation"
-    - "AI Conversation Summarization"
+    - "Admin Create Admin UI"
     - "Admin Create Admin Account"
+    - "Admin Permission Management"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
