@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, Clock, Home, User, BarChart, FileText, MessageSquare, Settings, Shield } from 'lucide-react';
+import { Calendar, Users, Clock, Home, User, BarChart, FileText, MessageSquare, Settings, Shield, UserPlus } from 'lucide-react';
 import { AuthContext } from '@/App';
 
 export default function Layout({ children }) {
