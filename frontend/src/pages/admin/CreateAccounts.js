@@ -130,31 +130,31 @@ export default function CreateAccounts() {
       <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-teal-50 to-blue-50 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Tạo tài khoản</h1>
-            <p className="text-gray-600 mt-1">Tạo tài khoản mới cho hệ thống</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('createAccount')}</h1>
+            <p className="text-gray-600 mt-1">{t('createAccountDesc')}</p>
           </div>
 
           {/* Role Selection */}
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <Label className="mb-4 block text-lg font-semibold">Chọn loại tài khoản</Label>
+            <Label className="mb-4 block text-lg font-semibold">{t('selectAccountType')}</Label>
             <div className="grid md:grid-cols-3 gap-4">
               <RoleCard
                 icon={<Users className="w-8 h-8" />}
-                title="Bệnh nhân"
+                title={t('patient')}
                 role="patient"
                 selected={selectedRole === 'patient'}
                 onClick={() => setSelectedRole('patient')}
               />
               <RoleCard
                 icon={<Stethoscope className="w-8 h-8" />}
-                title="Bác sĩ"
+                title={t('doctor')}
                 role="doctor"
                 selected={selectedRole === 'doctor'}
                 onClick={() => setSelectedRole('doctor')}
               />
               <RoleCard
                 icon={<Shield className="w-8 h-8" />}
-                title="Trưởng khoa"
+                title={t('departmentHead')}
                 role="department_head"
                 selected={selectedRole === 'department_head'}
                 onClick={() => setSelectedRole('department_head')}
@@ -164,7 +164,7 @@ export default function CreateAccounts() {
 
           {/* Create Account Form */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-xl font-bold mb-6">Thông tin {getRoleName(selectedRole)}</h2>
+            <h2 className="text-xl font-bold mb-6">{t('accountInfo')} {getRoleName(selectedRole)}</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Information */}
               <div className="space-y-4">
