@@ -118,7 +118,62 @@ export const translations = {
     obstetrics: 'Sản phụ khoa',
     neurology: 'Thần kinh',
     dermatology: 'Da liễu',
-    ent: 'Tai mũi họng'
+    ent: 'Tai mũi họng',
+    
+    // Doctors Management
+    doctorManagement: 'Quản lý bác sĩ',
+    doctorList: 'Danh sách bác sĩ',
+    filterByStatus: 'Lọc theo trạng thái',
+    all: 'Tất cả',
+    pending: 'Chờ duyệt',
+    approved: 'Đã duyệt',
+    rejected: 'Từ chối',
+    searchDoctors: 'Tìm kiếm bác sĩ...',
+    approve: 'Duyệt',
+    reject: 'Từ chối',
+    remove: 'Xóa',
+    status: 'Trạng thái',
+    experience: 'Kinh nghiệm',
+    years: 'năm',
+    fee: 'Phí khám',
+    
+    // Patients Management
+    patientManagement: 'Quản lý bệnh nhân',
+    searchPatients: 'Tìm kiếm bệnh nhân...',
+    registeredDate: 'Ngày đăng ký',
+    
+    // Stats Page
+    systemStatistics: 'Thống kê hệ thống',
+    overview: 'Tổng quan',
+    totalPatients: 'Tổng bệnh nhân',
+    totalDoctors: 'Tổng bác sĩ',
+    totalAppointments: 'Tổng lịch hẹn',
+    appointmentsByStatus: 'Lịch hẹn theo trạng thái',
+    pendingAppointments: 'Chờ xác nhận',
+    confirmedAppointments: 'Đã xác nhận',
+    completedAppointments: 'Đã hoàn thành',
+    cancelledAppointments: 'Đã hủy',
+    appointmentsByType: 'Lịch hẹn theo loại',
+    onlineConsultations: 'Khám online',
+    inPersonConsultations: 'Khám trực tiếp',
+    doctorsByStatus: 'Bác sĩ theo trạng thái',
+    pendingDoctors: 'Chờ duyệt',
+    approvedDoctors: 'Đã duyệt',
+    
+    // Common Actions
+    viewDetails: 'Xem chi tiết',
+    actions: 'Hành động',
+    noData: 'Không có dữ liệu',
+    confirmDeleteUser: 'Bạn có chắc muốn xóa người dùng này?',
+    userDeleted: 'Đã xóa người dùng',
+    cannotDeleteUser: 'Không thể xóa người dùng',
+    
+    // Sidebar Navigation
+    createAccounts: 'Tạo tài khoản',
+    doctors: 'Bác sĩ',
+    patients: 'Bệnh nhân',
+    stats: 'Thống kê',
+    admins: 'Quản lý Admin'
   },
   
   en: {
