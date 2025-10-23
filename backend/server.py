@@ -1229,7 +1229,6 @@ async def department_head_create_user(user_data: DepartmentHeadCreateUserRequest
     # If doctor, create doctor profile
     if user_data.role == 'doctor' and user_data.specialty_id:
         doctor_profile = {
-            "id": str(uuid.uuid4()),
             "user_id": user.id,
             "specialty_id": user_data.specialty_id,
             "bio": user_data.bio or "",
