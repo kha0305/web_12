@@ -30,6 +30,7 @@ import AdminDoctors from "@/pages/admin/Doctors";
 import AdminPatients from "@/pages/admin/Patients";
 import AdminStats from "@/pages/admin/Stats";
 import AdminsManagement from "@/pages/admin/Admins";
+import CreateAccounts from "@/pages/admin/CreateAccounts";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
