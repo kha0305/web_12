@@ -40,7 +40,8 @@ export default function LoginPage() {
       
       // Redirect based on role
       if (user.role === 'patient') navigate('/patient/dashboard');
-      else if (user.role === 'doctor' || user.role === 'department_head') navigate('/doctor/dashboard');
+      else if (user.role === 'doctor') navigate('/doctor/dashboard');
+      else if (user.role === 'department_head') navigate('/department-head/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Đăng nhập thất bại');
