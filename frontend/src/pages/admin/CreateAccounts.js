@@ -118,9 +118,9 @@ export default function CreateAccounts() {
 
   const getRoleName = (role) => {
     const names = {
-      patient: 'Bệnh nhân',
-      doctor: 'Bác sĩ',
-      department_head: 'Trưởng khoa'
+      patient: t('patient'),
+      doctor: t('doctor'),
+      department_head: t('departmentHead')
     };
     return names[role] || role;
   };
