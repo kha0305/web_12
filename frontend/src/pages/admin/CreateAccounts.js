@@ -168,10 +168,10 @@ export default function CreateAccounts() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Information */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-700 border-b pb-2">Thông tin cơ bản</h3>
+                <h3 className="font-semibold text-gray-700 border-b pb-2">{t('basicInfo')}</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="full_name">Họ và tên *</Label>
+                    <Label htmlFor="full_name">{t('fullName')} *</Label>
                     <Input
                       id="full_name"
                       type="text"
