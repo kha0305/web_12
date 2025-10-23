@@ -214,8 +214,7 @@ async def get_current_user(
             detail="Internal server error during authentication"
         )
 
-# Include router in the main app
-app.include_router(api_router, prefix=API_PREFIX)
+# Router will be included at the end of file after all routes are defined
 
 # Models
 class UserRole:
