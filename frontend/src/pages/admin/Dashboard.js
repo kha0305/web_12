@@ -31,37 +31,37 @@ export default function AdminDashboard() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <QuickActionCard
               icon={<UserPlus className="w-8 h-8" />}
-              title="Tạo tài khoản"
-              description="Tạo tài khoản bệnh nhân, bác sĩ, trưởng khoa"
+              title={t('createAccount')}
+              description={t('createAccountDesc')}
               onClick={() => navigate('/admin/create-accounts')}
               testId="create-accounts-card"
             />
             <QuickActionCard
               icon={<Users className="w-8 h-8" />}
-              title="Quản lý bác sĩ"
-              description="Duyệt và quản lý tài khoản bác sĩ"
+              title={t('manageDoctors')}
+              description={t('manageDoctorsDesc')}
               onClick={() => navigate('/admin/doctors')}
               testId="doctors-card"
             />
             <QuickActionCard
               icon={<FileText className="w-8 h-8" />}
-              title="Danh sách bệnh nhân"
-              description="Xem danh sách bệnh nhân đăng ký"
+              title={t('patientList')}
+              description={t('patientListDesc')}
               onClick={() => navigate('/admin/patients')}
               testId="patients-card"
             />
             <QuickActionCard
               icon={<BarChart className="w-8 h-8" />}
-              title="Thống kê"
-              description="Xem báo cáo và thống kê hệ thống"
+              title={t('statistics')}
+              description={t('statisticsDesc')}
               onClick={() => navigate('/admin/stats')}
               testId="stats-card"
             />
             {user?.admin_permissions?.can_create_admins && (
               <QuickActionCard
                 icon={<Shield className="w-8 h-8" />}
-                title="Quản lý Admin"
-                description="Tạo và quản lý tài khoản admin"
+                title={t('manageAdmins')}
+                description={t('manageAdminsDesc')}
                 onClick={() => navigate('/admin/admins')}
                 testId="admins-card"
               />
