@@ -69,7 +69,7 @@ export default function AdminPatients() {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-teal-50 to-blue-50 p-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Danh sách bệnh nhân</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('patientManagement')}</h1>
 
           {/* Search */}
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
@@ -77,7 +77,7 @@ export default function AdminPatients() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
                 data-testid="search-input"
-                placeholder="Tìm theo tên hoặc email..."
+                placeholder={t('searchPatients')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -87,20 +87,21 @@ export default function AdminPatients() {
 
           {/* Patients List */}
           {loading ? (
-            <p className="text-center text-gray-500">Đang tải...</p>
+            <p className="text-center text-gray-500">{t('loading')}</p>
           ) : filteredPatients.length === 0 ? (
             <div className="bg-white rounded-2xl p-12 text-center">
               <Search className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Không tìm thấy bệnh nhân phù hợp</p>
+              <p className="text-gray-500">{t('noData')}</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white">
                   <tr>
-                    <th className="px-6 py-4 text-left font-semibold">Họ và tên</th>
-                    <th className="px-6 py-4 text-left font-semibold">Email</th>
-                    <th className="px-6 py-4 text-left font-semibold">Ngày đăng ký</th>
+                    <th className="px-6 py-4 text-left font-semibold">{t('fullName')}</th>
+                    <th className="px-6 py-4 text-left font-semibold">{t('email')}</th>
+                    <th className="px-6 py-4 text-left font-semibold">{t('registeredDate')}</th>
+                    <th className="px-6 py-4 text-left font-semibold">{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -118,6 +119,17 @@ export default function AdminPatients() {
                       <td className="px-6 py-4 text-gray-600">
                         {patient.created_at ? new Date(patient.created_at).toLocaleDateString('vi-VN') : 'N/A'}
                       </td>
+                      <td className="px-6 py-4">
+                        <Button 
+                          onClick={() => handleDelete(patient.id, patient.full_name)} 
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                          size="sm"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          {t('remove')}
+                        </Button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -126,7 +138,7 @@ export default function AdminPatients() {
           )}
 
           <div className="mt-6 text-center text-gray-600">
-            Tổng cộng: <span className="font-bold text-teal-600">{filteredPatients.length}</span> bệnh nhân
+            {t('totalPatients')}: <span className="font-bold text-teal-600">{filteredPatients.length}</span>
           </div>
         </div>
       </div>
