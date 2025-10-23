@@ -271,3 +271,5 @@ agent_communication:
     message: "Completed backend AI features implementation. Ready for testing. All AI endpoints use OpenAI GPT-4o with Emergent LLM Key. Need to test: 1) AI chat functionality 2) Doctor recommendation based on symptoms 3) Conversation summarization 4) Admin account creation."
   - agent: "main"
     message: "Fixed email validation issue that was blocking tests. Now using custom validator instead of EmailStr. Also enhanced admin system with permission management. Root admin (admin@medischedule.com) has full permissions including can_create_admins. Ready for re-testing."
+  - agent: "main"
+    message: "Completed Admin Management UI integration. Added /admin/admins route, integrated into Dashboard and sidebar navigation. Features include: create admin form with granular permissions (can_create_admins, can_manage_doctors, can_manage_patients, can_view_stats), admin list display, edit permissions, delete admin. Only accessible to admins with can_create_admins permission. Ready for testing."
