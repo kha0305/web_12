@@ -26,7 +26,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <QuickActionCard
               icon={<Users className="w-8 h-8" />}
               title="Quản lý bác sĩ"
@@ -48,6 +48,15 @@ export default function AdminDashboard() {
               onClick={() => navigate('/admin/stats')}
               testId="stats-card"
             />
+            {user?.admin_permissions?.can_create_admins && (
+              <QuickActionCard
+                icon={<Shield className="w-8 h-8" />}
+                title="Quản lý Admin"
+                description="Tạo và quản lý tài khoản admin"
+                onClick={() => navigate('/admin/admins')}
+                testId="admins-card"
+              />
+            )}
           </div>
         </div>
       </div>
