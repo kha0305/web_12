@@ -313,7 +313,7 @@ export default function CreateAccounts() {
               {/* Department Head Permissions */}
               {selectedRole === 'department_head' && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-700 border-b pb-2">Phân quyền trưởng khoa</h3>
+                  <h3 className="font-semibold text-gray-700 border-b pb-2">{t('departmentHeadPermissions')}</h3>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -322,7 +322,7 @@ export default function CreateAccounts() {
                         onCheckedChange={(checked) => setFormData({ ...formData, can_manage_doctors: checked })}
                       />
                       <label htmlFor="can_manage_doctors" className="text-sm cursor-pointer">
-                        Quản lý bác sĩ
+                        {t('canManageDoctors')}
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -332,7 +332,7 @@ export default function CreateAccounts() {
                         onCheckedChange={(checked) => setFormData({ ...formData, can_manage_patients: checked })}
                       />
                       <label htmlFor="can_manage_patients" className="text-sm cursor-pointer">
-                        Quản lý bệnh nhân
+                        {t('canManagePatients')}
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -342,7 +342,7 @@ export default function CreateAccounts() {
                         onCheckedChange={(checked) => setFormData({ ...formData, can_manage_appointments: checked })}
                       />
                       <label htmlFor="can_manage_appointments" className="text-sm cursor-pointer">
-                        Quản lý lịch hẹn
+                        {t('canManageAppointments')}
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -352,7 +352,7 @@ export default function CreateAccounts() {
                         onCheckedChange={(checked) => setFormData({ ...formData, can_view_stats: checked })}
                       />
                       <label htmlFor="can_view_stats" className="text-sm cursor-pointer">
-                        Xem thống kê
+                        {t('canViewStats')}
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -362,7 +362,7 @@ export default function CreateAccounts() {
                         onCheckedChange={(checked) => setFormData({ ...formData, can_manage_specialties: checked })}
                       />
                       <label htmlFor="can_manage_specialties" className="text-sm cursor-pointer">
-                        Quản lý chuyên khoa
+                        {t('canManageSpecialties')}
                       </label>
                     </div>
                   </div>
@@ -376,10 +376,10 @@ export default function CreateAccounts() {
                   className="bg-gradient-to-r from-teal-500 to-cyan-500"
                 >
                   <UserPlus className="w-4 h-4 mr-2" />
-                  {loading ? 'Đang tạo...' : 'Tạo tài khoản'}
+                  {loading ? t('creating') : t('createAccount')}
                 </Button>
                 <Button type="button" variant="outline" onClick={resetForm}>
-                  Đặt lại
+                  {t('reset')}
                 </Button>
               </div>
             </form>
