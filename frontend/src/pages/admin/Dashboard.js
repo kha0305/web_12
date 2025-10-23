@@ -4,6 +4,7 @@ import { AuthContext } from '@/App';
 import { Button } from '@/components/ui/button';
 import { Users, FileText, BarChart, LogOut, Shield, UserPlus } from 'lucide-react';
 import Layout from '@/components/Layout';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
