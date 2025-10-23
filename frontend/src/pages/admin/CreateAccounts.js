@@ -273,7 +273,7 @@ export default function CreateAccounts() {
                   </div>
 
                   <div>
-                    <Label htmlFor="bio">Giới thiệu</Label>
+                    <Label htmlFor="bio">{t('bio')}</Label>
                     <textarea
                       id="bio"
                       value={formData.bio}
@@ -285,7 +285,7 @@ export default function CreateAccounts() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="experience_years">Số năm kinh nghiệm</Label>
+                      <Label htmlFor="experience_years">{t('experienceYears')}</Label>
                       <Input
                         id="experience_years"
                         type="number"
@@ -296,7 +296,7 @@ export default function CreateAccounts() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="consultation_fee">Phí khám (VNĐ)</Label>
+                      <Label htmlFor="consultation_fee">{t('consultationFee')}</Label>
                       <Input
                         id="consultation_fee"
                         type="number"
