@@ -535,6 +535,464 @@ class MediScheduleAPITester:
         
         print("\n🎯 BACKEND URL USED:", self.base_url)
 
+class DepartmentHeadAPITester:
+    def __init__(self):
+        self.base_url = BASE_URL
+        self.dept_head_token = None
+        self.patient_token = None
+        self.doctor_token = None
+        self.dept_head_id = None
+        self.test_patient_id = None
+        self.test_doctor_id = None
+        self.test_results = []
+        
+    def log_result(self, test_name, success, message, details=None):
+        """Log test results"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "message": message,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status}: {test_name} - {message}")
+        if details and not success:
+            print(f"   Details: {details}")
+    
+    def make_request(self, method, endpoint, data=None, headers=None, token=None):
+        """Make HTTP request with proper error handling"""
+        url = f"{self.base_url}{endpoint}"
+        
+        if headers is None:
+            headers = {"Content-Type": "application/json"}
+        
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        
+        print(f"   Making {method} request to: {url}")
+        
+        try:
+            if method.upper() == "GET":
+                response = requests.get(url, headers=headers, timeout=30, verify=False)
+            elif method.upper() == "POST":
+                response = requests.post(url, json=data, headers=headers, timeout=30, verify=False)
+            elif method.upper() == "PUT":
+                response = requests.put(url, json=data, headers=headers, timeout=30, verify=False)
+            elif method.upper() == "DELETE":
+                response = requests.delete(url, headers=headers, timeout=30, verify=False)
+            else:
+                raise ValueError(f"Unsupported method: {method}")
+            
+            print(f"   Response status: {response.status_code}")
+            return response
+        except requests.exceptions.RequestException as e:
+            print(f"   Request failed: {str(e)}")
+            return None
+    
+    def setup_authentication(self):
+        """Setup authentication for Department Head testing"""
+        print("\n=== DEPARTMENT HEAD AUTHENTICATION SETUP ===")
+        
+        # 1. Login as Department Head
+        dept_head_login = {
+            "email": "departmenthead@test.com",
+            "password": "dept123"
+        }
+        
+        response = self.make_request("POST", "/auth/login", dept_head_login)
+        if response and response.status_code == 200:
+            data = response.json()
+            self.dept_head_token = data.get("token")
+            self.dept_head_id = data.get("user", {}).get("id")
+            self.log_result("Department Head Login", True, "Department Head logged in successfully")
+        else:
+            error_msg = response.text if response else "Connection failed"
+            self.log_result("Department Head Login", False, "Failed to login as Department Head", error_msg)
+            return False
+        
+        # 2. Create a test patient for access control testing
+        test_id = str(uuid.uuid4())[:8]
+        patient_data = {
+            "email": f"testpatient_{test_id}@test.com",
+            "password": "test123",
+            "full_name": "Nguyễn Thị Bệnh Nhân Test",
+            "role": "patient"
+        }
+        
+        response = self.make_request("POST", "/auth/register", patient_data)
+        if response and response.status_code == 200:
+            data = response.json()
+            self.patient_token = data.get("token")
+            self.log_result("Test Patient Registration", True, "Test patient registered successfully")
+        else:
+            error_msg = response.text if response else "Connection failed"
+            self.log_result("Test Patient Registration", False, "Failed to register test patient", error_msg)
+            return False
+        
+        return True
+    
+    def test_create_user_endpoint(self):
+        """Test POST /api/department-head/create-user"""
+        print("\n=== TESTING DEPARTMENT HEAD CREATE USER ENDPOINT ===")
+        
+        if not self.dept_head_token:
+            self.log_result("Create User Endpoint", False, "No Department Head token available")
+            return
+        
+        # Get specialties first for doctor creation
+        specialties_response = self.make_request("GET", "/specialties")
+        specialty_id = None
+        if specialties_response and specialties_response.status_code == 200:
+            specialties = specialties_response.json()
+            if specialties:
+                specialty_id = specialties[0]["id"]
+        
+        test_id = str(uuid.uuid4())[:8]
+        
+        # Test 1: ✅ Create doctor account with valid data
+        doctor_data = {
+            "email": f"testdoctor_{test_id}@test.com",
+            "password": "doctor123",
+            "full_name": "Bác sĩ Nguyễn Văn Test",
+            "role": "doctor",
+            "phone": "0123456789",
+            "specialty_id": specialty_id,
+            "bio": "Bác sĩ có kinh nghiệm 10 năm",
+            "experience_years": 10,
+            "consultation_fee": 500000
+        }
+        
+        response = self.make_request("POST", "/department-head/create-user", doctor_data, token=self.dept_head_token)
+        if response and response.status_code == 200:
+            data = response.json()
+            if data.get("message") and data.get("user"):
+                self.test_doctor_id = data.get("user", {}).get("id")
+                self.log_result("Create Doctor Account", True, "Successfully created doctor account")
+            else:
+                self.log_result("Create Doctor Account", False, "Missing message or user in response")
+        else:
+            error_msg = response.text if response else "Connection failed"
+            self.log_result("Create Doctor Account", False, "Failed to create doctor account", error_msg)
+        
+        # Test 2: ✅ Create patient account with valid data
+        patient_data = {
+            "email": f"testpatient2_{test_id}@test.com",
+            "password": "patient123",
+            "full_name": "Nguyễn Thị Bệnh Nhân Test 2",
+            "role": "patient",
+            "phone": "0987654321",
+            "date_of_birth": "1990-01-01",
+            "address": "123 Đường Test, TP.HCM"
+        }
+        
+        response = self.make_request("POST", "/department-head/create-user", patient_data, token=self.dept_head_token)
+        if response and response.status_code == 200:
+            data = response.json()
+            if data.get("message") and data.get("user"):
+                self.test_patient_id = data.get("user", {}).get("id")
+                self.log_result("Create Patient Account", True, "Successfully created patient account")
+            else:
+                self.log_result("Create Patient Account", False, "Missing message or user in response")
+        else:
+            error_msg = response.text if response else "Connection failed"
+            self.log_result("Create Patient Account", False, "Failed to create patient account", error_msg)
+        
+        # Test 3: ❌ Try to create admin account (should be rejected with 403)
+        admin_data = {
+            "email": f"testadmin_{test_id}@test.com",
+            "password": "admin123",
+            "full_name": "Admin Test",
+            "role": "admin"
+        }
+        
+        response = self.make_request("POST", "/department-head/create-user", admin_data, token=self.dept_head_token)
+        if response and response.status_code == 403:
+            self.log_result("Create Admin Account - Rejection Test", True, "Correctly rejected admin account creation")
+        else:
+            self.log_result("Create Admin Account - Rejection Test", False, "Should reject admin account creation")
+        
+        # Test 4: ❌ Try to create department_head account (should be rejected with 403)
+        dept_head_data = {
+            "email": f"testdepthead_{test_id}@test.com",
+            "password": "dept123",
+            "full_name": "Department Head Test",
+            "role": "department_head"
+        }
+        
+        response = self.make_request("POST", "/department-head/create-user", dept_head_data, token=self.dept_head_token)
+        if response and response.status_code == 403:
+            self.log_result("Create Department Head Account - Rejection Test", True, "Correctly rejected department_head account creation")
+        else:
+            self.log_result("Create Department Head Account - Rejection Test", False, "Should reject department_head account creation")
+        
+        # Test 5: ❌ Try with existing email (should fail with 400)
+        duplicate_data = {
+            "email": "departmenthead@test.com",  # Existing email
+            "password": "test123",
+            "full_name": "Duplicate Test",
+            "role": "patient"
+        }
+        
+        response = self.make_request("POST", "/department-head/create-user", duplicate_data, token=self.dept_head_token)
+        if response and response.status_code == 400:
+            self.log_result("Duplicate Email Test", True, "Correctly rejected duplicate email")
+        else:
+            self.log_result("Duplicate Email Test", False, "Should reject duplicate email")
+        
+        # Test 6: ❌ Try without authentication (should fail with 401)
+        response = self.make_request("POST", "/department-head/create-user", patient_data)
+        if response and response.status_code == 401:
+            self.log_result("No Authentication Test", True, "Correctly rejected request without authentication")
+        else:
+            self.log_result("No Authentication Test", False, "Should reject request without authentication")
+        
+        # Test 7: ❌ Try with non-department_head role (should fail with 403)
+        response = self.make_request("POST", "/department-head/create-user", patient_data, token=self.patient_token)
+        if response and response.status_code == 403:
+            self.log_result("Non-Department Head Access Test", True, "Correctly rejected non-department_head access")
+        else:
+            self.log_result("Non-Department Head Access Test", False, "Should reject non-department_head access")
+    
+    def test_get_doctors_endpoint(self):
+        """Test GET /api/department-head/doctors"""
+        print("\n=== TESTING DEPARTMENT HEAD GET DOCTORS ENDPOINT ===")
+        
+        if not self.dept_head_token:
+            self.log_result("Get Doctors Endpoint", False, "No Department Head token available")
+            return
+        
+        # Test 1: ✅ Fetch all doctors list
+        response = self.make_request("GET", "/department-head/doctors", token=self.dept_head_token)
+        if response and response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list):
+                self.log_result("Fetch Doctors List", True, f"Successfully fetched {len(data)} doctors")
+                
+                # Test 2: ✅ Verify response includes user_info and specialty_name
+                if data:
+                    doctor = data[0]
+                    has_user_info = "user_info" in doctor
+                    has_specialty_name = "specialty_name" in doctor
+                    
+                    if has_user_info and has_specialty_name:
+                        self.log_result("Doctor Response Format", True, "Response includes user_info and specialty_name")
+                    else:
+                        missing_fields = []
+                        if not has_user_info:
+                            missing_fields.append("user_info")
+                        if not has_specialty_name:
+                            missing_fields.append("specialty_name")
+                        self.log_result("Doctor Response Format", False, f"Missing fields: {', '.join(missing_fields)}")
+                else:
+                    self.log_result("Doctor Response Format", True, "No doctors to verify format (empty list)")
+            else:
+                self.log_result("Fetch Doctors List", False, "Response should be a list")
+        else:
+            error_msg = response.text if response else "Connection failed"
+            self.log_result("Fetch Doctors List", False, "Failed to fetch doctors list", error_msg)
+        
+        # Test 3: ❌ Try without authentication (should fail with 401)
+        response = self.make_request("GET", "/department-head/doctors")
+        if response and response.status_code == 401:
+            self.log_result("Get Doctors - No Authentication Test", True, "Correctly rejected request without authentication")
+        else:
+            self.log_result("Get Doctors - No Authentication Test", False, "Should reject request without authentication")
+        
+        # Test 4: ❌ Try with non-department_head role (should fail with 403)
+        response = self.make_request("GET", "/department-head/doctors", token=self.patient_token)
+        if response and response.status_code == 403:
+            self.log_result("Get Doctors - Non-Department Head Access Test", True, "Correctly rejected non-department_head access")
+        else:
+            self.log_result("Get Doctors - Non-Department Head Access Test", False, "Should reject non-department_head access")
+    
+    def test_get_patients_endpoint(self):
+        """Test GET /api/department-head/patients"""
+        print("\n=== TESTING DEPARTMENT HEAD GET PATIENTS ENDPOINT ===")
+        
+        if not self.dept_head_token:
+            self.log_result("Get Patients Endpoint", False, "No Department Head token available")
+            return
+        
+        # Test 1: ✅ Fetch all patients list
+        response = self.make_request("GET", "/department-head/patients", token=self.dept_head_token)
+        if response and response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list):
+                self.log_result("Fetch Patients List", True, f"Successfully fetched {len(data)} patients")
+                
+                # Test 2: ✅ Verify response excludes password field
+                if data:
+                    patient = data[0]
+                    has_password = "password" in patient
+                    
+                    if not has_password:
+                        self.log_result("Patient Response Security", True, "Response correctly excludes password field")
+                    else:
+                        self.log_result("Patient Response Security", False, "Response should not include password field")
+                else:
+                    self.log_result("Patient Response Security", True, "No patients to verify format (empty list)")
+            else:
+                self.log_result("Fetch Patients List", False, "Response should be a list")
+        else:
+            error_msg = response.text if response else "Connection failed"
+            self.log_result("Fetch Patients List", False, "Failed to fetch patients list", error_msg)
+        
+        # Test 3: ❌ Try without authentication (should fail with 401)
+        response = self.make_request("GET", "/department-head/patients")
+        if response and response.status_code == 401:
+            self.log_result("Get Patients - No Authentication Test", True, "Correctly rejected request without authentication")
+        else:
+            self.log_result("Get Patients - No Authentication Test", False, "Should reject request without authentication")
+        
+        # Test 4: ❌ Try with non-department_head role (should fail with 403)
+        response = self.make_request("GET", "/department-head/patients", token=self.patient_token)
+        if response and response.status_code == 403:
+            self.log_result("Get Patients - Non-Department Head Access Test", True, "Correctly rejected non-department_head access")
+        else:
+            self.log_result("Get Patients - Non-Department Head Access Test", False, "Should reject non-department_head access")
+    
+    def test_remove_patient_endpoint(self):
+        """Test DELETE /api/department-head/remove-patient/{patient_id}"""
+        print("\n=== TESTING DEPARTMENT HEAD REMOVE PATIENT ENDPOINT ===")
+        
+        if not self.dept_head_token:
+            self.log_result("Remove Patient Endpoint", False, "No Department Head token available")
+            return
+        
+        # Test 1: ✅ Delete a patient successfully (use the test patient we created)
+        if self.test_patient_id:
+            response = self.make_request("DELETE", f"/department-head/remove-patient/{self.test_patient_id}", token=self.dept_head_token)
+            if response and response.status_code == 200:
+                data = response.json()
+                if data.get("message"):
+                    self.log_result("Delete Patient Successfully", True, "Successfully deleted patient")
+                else:
+                    self.log_result("Delete Patient Successfully", False, "Missing message in response")
+            else:
+                error_msg = response.text if response else "Connection failed"
+                self.log_result("Delete Patient Successfully", False, "Failed to delete patient", error_msg)
+        else:
+            self.log_result("Delete Patient Successfully", False, "No test patient ID available")
+        
+        # Test 2: ❌ Try to delete non-existent patient (should fail with 404)
+        fake_patient_id = str(uuid.uuid4())
+        response = self.make_request("DELETE", f"/department-head/remove-patient/{fake_patient_id}", token=self.dept_head_token)
+        if response and response.status_code == 404:
+            self.log_result("Delete Non-existent Patient Test", True, "Correctly returned 404 for non-existent patient")
+        else:
+            self.log_result("Delete Non-existent Patient Test", False, "Should return 404 for non-existent patient")
+        
+        # Test 3: ❌ Try without authentication (should fail with 401)
+        response = self.make_request("DELETE", f"/department-head/remove-patient/{fake_patient_id}")
+        if response and response.status_code == 401:
+            self.log_result("Remove Patient - No Authentication Test", True, "Correctly rejected request without authentication")
+        else:
+            self.log_result("Remove Patient - No Authentication Test", False, "Should reject request without authentication")
+        
+        # Test 4: ❌ Try with non-department_head role (should fail with 403)
+        response = self.make_request("DELETE", f"/department-head/remove-patient/{fake_patient_id}", token=self.patient_token)
+        if response and response.status_code == 403:
+            self.log_result("Remove Patient - Non-Department Head Access Test", True, "Correctly rejected non-department_head access")
+        else:
+            self.log_result("Remove Patient - Non-Department Head Access Test", False, "Should reject non-department_head access")
+    
+    def test_get_stats_endpoint(self):
+        """Test GET /api/department-head/stats"""
+        print("\n=== TESTING DEPARTMENT HEAD GET STATS ENDPOINT ===")
+        
+        if not self.dept_head_token:
+            self.log_result("Get Stats Endpoint", False, "No Department Head token available")
+            return
+        
+        # Test 1: ✅ Fetch statistics successfully
+        response = self.make_request("GET", "/department-head/stats", token=self.dept_head_token)
+        if response and response.status_code == 200:
+            data = response.json()
+            
+            # Test 2: ✅ Verify stats include required fields
+            required_fields = [
+                "total_doctors", "approved_doctors", "pending_doctors",
+                "total_patients", "total_appointments", "completed_appointments"
+            ]
+            
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if not missing_fields:
+                self.log_result("Fetch Statistics Successfully", True, "Successfully fetched all required statistics")
+                print(f"   Stats: {data}")
+            else:
+                self.log_result("Fetch Statistics Successfully", False, f"Missing required fields: {', '.join(missing_fields)}")
+        else:
+            error_msg = response.text if response else "Connection failed"
+            self.log_result("Fetch Statistics Successfully", False, "Failed to fetch statistics", error_msg)
+        
+        # Test 3: ❌ Try without authentication (should fail with 401)
+        response = self.make_request("GET", "/department-head/stats")
+        if response and response.status_code == 401:
+            self.log_result("Get Stats - No Authentication Test", True, "Correctly rejected request without authentication")
+        else:
+            self.log_result("Get Stats - No Authentication Test", False, "Should reject request without authentication")
+        
+        # Test 4: ❌ Try with non-department_head role (should fail with 403)
+        response = self.make_request("GET", "/department-head/stats", token=self.patient_token)
+        if response and response.status_code == 403:
+            self.log_result("Get Stats - Non-Department Head Access Test", True, "Correctly rejected non-department_head access")
+        else:
+            self.log_result("Get Stats - Non-Department Head Access Test", False, "Should reject non-department_head access")
+    
+    def run_all_tests(self):
+        """Run all Department Head tests"""
+        print("🏥 Department Head Backend API Testing")
+        print("=" * 50)
+        
+        # Setup authentication
+        if not self.setup_authentication():
+            print("❌ Authentication setup failed. Cannot continue with tests.")
+            return
+        
+        # Run all Department Head tests
+        self.test_create_user_endpoint()
+        self.test_get_doctors_endpoint()
+        self.test_get_patients_endpoint()
+        self.test_remove_patient_endpoint()
+        self.test_get_stats_endpoint()
+        
+        # Print summary
+        self.print_summary()
+    
+    def print_summary(self):
+        """Print test summary"""
+        print("\n" + "=" * 50)
+        print("📊 DEPARTMENT HEAD TEST SUMMARY")
+        print("=" * 50)
+        
+        total_tests = len(self.test_results)
+        passed_tests = len([r for r in self.test_results if r["success"]])
+        failed_tests = total_tests - passed_tests
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"✅ Passed: {passed_tests}")
+        print(f"❌ Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if failed_tests > 0:
+            print("\n🔍 FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"   ❌ {result['test']}: {result['message']}")
+        
+        print("\n🎯 BACKEND URL USED:", self.base_url)
+
 if __name__ == "__main__":
-    tester = MediScheduleAPITester()
-    tester.run_all_tests()
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "department-head":
+        # Run only Department Head tests
+        tester = DepartmentHeadAPITester()
+        tester.run_all_tests()
+    else:
+        # Run original tests
+        tester = MediScheduleAPITester()
+        tester.run_all_tests()
