@@ -32,9 +32,23 @@ export default function AdminPatients() {
       setPatients(response.data);
       setFilteredPatients(response.data);
     } catch (error) {
-      toast.error('Không thể tải danh sách bệnh nhân');
+      toast.error(t('loadError'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (patientId, patientName) => {
+    if (!window.confirm(`${t('confirmDeleteUser')} ${patientName}?`)) return;
+
+    try {
+      await axios.delete(`${API}/admin/delete-user/${patientId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(t('userDeleted'));
+      fetchPatients();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || t('cannotDeleteUser'));
     }
   };
 
