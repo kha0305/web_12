@@ -245,15 +245,18 @@ backend:
   
   - task: "Admin Create Admin Account with Permissions"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py, backend/create_admin.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Enhanced admin creation with permission system. Root admin has can_create_admins=True. New admins can have custom permissions."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: ObjectId serialization issue FIXED! Successfully created admin account with custom permissions. Authentication and authorization working correctly. Permission system functioning as expected."
   
   - task: "Admin Permission Management"
     implemented: true
