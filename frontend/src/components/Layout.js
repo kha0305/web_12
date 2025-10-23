@@ -44,8 +44,8 @@ export default function Layout({ children }) {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-xl fixed h-full z-10">
-        <div className="p-6">
+      <aside className="w-64 bg-white shadow-xl fixed h-full z-10 flex flex-col">
+        <div className="p-6 flex-1">
           <Link to="/" className="flex items-center gap-2 mb-8">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
               <Calendar className="w-6 h-6 text-white" />
@@ -74,6 +74,11 @@ export default function Layout({ children }) {
               );
             })}
           </nav>
+        </div>
+        
+        {/* Language Toggle at bottom of sidebar */}
+        <div className="p-6 border-t">
+          <LanguageToggle />
         </div>
       </aside>
 
