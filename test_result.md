@@ -200,15 +200,18 @@ backend:
   
   - task: "AI Doctor Recommendation"
     implemented: true
-    working: "NA"
+    working: false
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created POST /api/ai/recommend-doctor endpoint. Analyzes symptoms and recommends specialty + doctors using AI."
+      - working: false
+        agent: "testing"
+        comment: "✅ IMPLEMENTED but ❌ NOT WORKING: Endpoint is now implemented (lines 1413-1488 in server.py) with proper authentication and comprehensive doctor recommendation logic. However, OpenAI API quota exceeded (Error 429). Authentication works correctly - rejects unauthorized access with 403. Endpoint structure and logic are correct, only blocked by API quota limits."
   
   - task: "AI Conversation Summarization"
     implemented: true
