@@ -2,12 +2,15 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext, API } from '@/App';
 import axios from 'axios';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import Layout from '@/components/Layout';
-import { Search, Users } from 'lucide-react';
+import { Search, Users, Trash2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminPatients() {
   const { token } = useContext(AuthContext);
+  const { t } = useLanguage();
   const [patients, setPatients] = useState([]);
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
