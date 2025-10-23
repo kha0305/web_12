@@ -33,6 +33,12 @@ import AdminStats from "@/pages/admin/Stats";
 import AdminsManagement from "@/pages/admin/Admins";
 import CreateAccounts from "@/pages/admin/CreateAccounts";
 
+// Department Head Pages
+import DepartmentHeadDashboard from "@/pages/department-head/Dashboard";
+import DepartmentHeadCreateAccounts from "@/pages/department-head/CreateAccounts";
+import DepartmentHeadDoctors from "@/pages/department-head/Doctors";
+import DepartmentHeadPatients from "@/pages/department-head/Patients";
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
 
