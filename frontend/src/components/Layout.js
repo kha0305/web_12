@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Users, Clock, Home, User, BarChart, FileText, MessageSquare, Settings } from 'lucide-react';
+import { Calendar, Users, Clock, Home, User, BarChart, FileText, MessageSquare, Settings, Shield } from 'lucide-react';
+import { AuthContext } from '@/App';
 
 export default function Layout({ children }) {
   const location = useLocation();
   const role = location.pathname.split('/')[1];
+  const { user } = useContext(AuthContext);
 
   const patientLinks = [
     { path: '/patient/dashboard', icon: Home, label: 'Trang chủ' },
