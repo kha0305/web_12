@@ -137,15 +137,18 @@ backend:
   
   - task: "Department Head Get Patients Endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created GET /api/department-head/patients endpoint. Returns all patients excluding password field."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Successfully fetched 8 patients. Response correctly excludes password field for security. Authentication working correctly. Returns 403 for non-department_head users."
   
   - task: "Department Head Remove Patient Endpoint"
     implemented: true
