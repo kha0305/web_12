@@ -63,10 +63,24 @@ export default function AdminDoctors() {
       await axios.put(`${API}/admin/doctors/${doctorId}/approve?status=${status}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success(status === 'approved' ? 'Duyệt bác sĩ thành công' : 'Đã từ chối bác sĩ');
+      toast.success(status === 'approved' ? t('updateSuccess') : t('updateSuccess'));
       fetchDoctors();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Cập nhật thất bại');
+      toast.error(error.response?.data?.detail || t('updateError'));
+    }
+  };
+
+  const handleDelete = async (doctorId, doctorName) => {
+    if (!window.confirm(`${t('confirmDeleteUser')} ${doctorName}?`)) return;
+
+    try {
+      await axios.delete(`${API}/admin/delete-user/${doctorId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(t('userDeleted'));
+      fetchDoctors();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || t('cannotDeleteUser'));
     }
   };
 
