@@ -1041,3 +1041,7 @@ async def department_head_remove_doctor(doctor_id: str, current_user: dict = Dep
     await db.users.delete_one({"id": doctor_id})
     
     return {"message": "Doctor removed successfully"}
+
+# Include router in the main app after all routes are defined
+app.include_router(api_router, prefix=API_PREFIX)
+
