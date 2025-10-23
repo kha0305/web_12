@@ -408,28 +408,25 @@ frontend:
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
+  version: "2.0"
   test_sequence: 0
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Admin Create Admin UI"
-    - "Admin Create Admin Account"
-    - "Admin Permission Management"
-    - "Admin Create User Accounts (Patient, Doctor, Department Head)"
+    - "Department Head Create User Endpoint"
+    - "Department Head Get Doctors Endpoint"
+    - "Department Head Get Patients Endpoint"
+    - "Department Head Remove Patient Endpoint"
+    - "Department Head Stats Endpoint"
+    - "Department Head Dashboard"
+    - "Department Head Create Accounts UI"
+    - "Department Head Manage Doctors UI"
+    - "Department Head Manage Patients UI"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "main"
-    message: "Completed backend AI features implementation. Ready for testing. All AI endpoints use OpenAI GPT-4o with Emergent LLM Key. Need to test: 1) AI chat functionality 2) Doctor recommendation based on symptoms 3) Conversation summarization 4) Admin account creation."
-  - agent: "main"
-    message: "Fixed email validation issue that was blocking tests. Now using custom validator instead of EmailStr. Also enhanced admin system with permission management. Root admin (admin@medischedule.com) has full permissions including can_create_admins. Ready for re-testing."
-  - agent: "main"
-    message: "Completed Admin Management UI integration. Added /admin/admins route, integrated into Dashboard and sidebar navigation. Features include: create admin form with granular permissions (can_create_admins, can_manage_doctors, can_manage_patients, can_view_stats), admin list display, edit permissions, delete admin. Only accessible to admins with can_create_admins permission. Ready for testing."
-  - agent: "main"
-    message: "Completed account creation system. Admin can now create patient, doctor, and department_head accounts. Added POST /api/admin/create-user endpoint with role-specific fields. Created /admin/create-accounts page with comprehensive form including role selection, basic info, doctor-specific fields (specialty, bio, experience, fee), and department_head permissions. Created sample data script and generated test accounts. All accounts ready for testing."
-  - agent: "main"
-    message: "Implemented multi-language support (Vietnamese/English). Created LanguageContext with comprehensive translations for all admin features. Added language toggle button in sidebar (Globe icon showing current language). Applied translations to Admin Dashboard and CreateAccounts page. Language preference persists in localStorage. Users can switch between VI and EN seamlessly."
+    message: "Completed Department Head feature implementation. Backend: Created 5 new endpoints (/api/department-head/create-user, /doctors, /patients, /remove-patient/{id}, /stats). Department Head can ONLY create doctor and patient accounts (validation prevents admin/department_head creation). Frontend: Created 4 new pages (Dashboard, CreateAccounts, Doctors, Patients) with separate UI from Admin. Updated routing, navigation, and added 48 translations (VI/EN). Department Head has independent interface focused on doctor and patient management only. Ready for testing."
