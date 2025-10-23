@@ -417,15 +417,18 @@ frontend:
   
   - task: "Admin Create User Accounts (Patient, Doctor, Department Head)"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py, frontend/src/pages/admin/CreateAccounts.js, backend/create_sample_data.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented full account creation system for admin. Backend: Added POST /api/admin/create-user endpoint supporting patient, doctor, and department_head roles. Frontend: Created comprehensive form with role selection and role-specific fields. Created sample data script with 3 patients, 3 doctors, 1 department head, and 8 specialties. All test accounts created successfully."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: ObjectId serialization issue FIXED! Successfully created all role types (patient, doctor, department_head) through admin endpoint. Authentication and authorization working correctly. All functionality working as expected."
   
   - task: "Multi-language Support (Vietnamese/English)"
     implemented: true
