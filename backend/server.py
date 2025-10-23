@@ -32,8 +32,7 @@ MONGO_CONNECT_TIMEOUT = int(os.environ.get('MONGO_CONNECT_TIMEOUT', 5000))  # 5 
 MONGO_SERVER_SELECTION_TIMEOUT = int(os.environ.get('MONGO_SERVER_SELECTION_TIMEOUT', 5000))  # 5 seconds
 
 # Application Settings
-API_VERSION = "v1"
-API_PREFIX = f"/api/{API_VERSION}"
+API_PREFIX = "/api"
 
 # Create the main app with metadata
 app = FastAPI(
