@@ -217,7 +217,7 @@ export default function CreateAccounts() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="phone">Số điện thoại</Label>
+                    <Label htmlFor="phone">{t('phone')}</Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -227,7 +227,7 @@ export default function CreateAccounts() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="date_of_birth">Ngày sinh</Label>
+                    <Label htmlFor="date_of_birth">{t('dateOfBirth')}</Label>
                     <Input
                       id="date_of_birth"
                       type="date"
@@ -239,7 +239,7 @@ export default function CreateAccounts() {
                 </div>
 
                 <div>
-                  <Label htmlFor="address">Địa chỉ</Label>
+                  <Label htmlFor="address">{t('address')}</Label>
                   <Input
                     id="address"
                     type="text"
