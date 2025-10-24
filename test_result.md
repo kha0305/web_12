@@ -369,15 +369,18 @@ frontend:
   
   - task: "Department Head Navigation Menu"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/components/Layout.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Updated Layout to display Department Head menu items: Home, Create Accounts, Doctors, Patients. Department Head has separate navigation from Admin and Doctor."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Department Head navigation menu fully functional! Sidebar displays correct menu items: Trang chủ (Home), Tạo tài khoản (Create Accounts), Bác sĩ (Doctors), Bệnh nhân (Patients). Navigation is separate from Admin and Doctor menus. Menu items are properly highlighted when active. Language toggle working (EN/VI)."
   
   - task: "Department Head Login Redirect"
     implemented: true
