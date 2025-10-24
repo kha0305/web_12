@@ -307,15 +307,13 @@ class UserCreate(BaseModel):
         return phone
 
 class UserLogin(BaseModel):
-    email: str
+    login: str  # Có thể là email hoặc username
     password: str
     
-    @field_validator('email')
+    @field_validator('login')
     @classmethod
-    def validate_email(cls, v):
-        if '@' not in v or '.' not in v.split('@')[1]:
-            raise ValueError('Invalid email format')
-        return v.lower()
+    def validate_login(cls, v):
+        return v.lower().strip()
 
 class Specialty(BaseModel):
     model_config = ConfigDict(extra="ignore")
