@@ -26,7 +26,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API}/auth/login`, formData);
+      // Transform data to match backend expectations
+      const loginPayload = {
+        login: formData.email,
+        password: formData.password
+      };
+      
+      const response = await axios.post(`${API}/auth/login`, loginPayload);
       const { token, user } = response.data;
       
       // Remember email if checkbox is checked
