@@ -309,15 +309,18 @@ frontend:
   
   - task: "Department Head Create Accounts UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/department-head/CreateAccounts.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created CreateAccounts page for Department Head. Can only create patient and doctor accounts (not admin or department_head). Includes role selection cards and forms with all required fields including doctor-specific fields."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Department Head Create Accounts UI fully functional! Page loads correctly with role selection cards (Patient/Doctor only - no admin/department_head options as expected). Form includes all required fields: email, password, full name, phone, date of birth, address. Doctor-specific fields (specialty, experience, consultation fee, bio) appear when doctor role is selected. Fixed react-hot-toast import issue."
   
   - task: "Department Head Manage Doctors UI"
     implemented: true
