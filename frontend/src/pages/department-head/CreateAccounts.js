@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { UserPlus, User, Stethoscope } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 
