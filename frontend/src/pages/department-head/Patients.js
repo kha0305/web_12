@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { Search, Trash2, User, Phone, MapPin, Calendar } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 
