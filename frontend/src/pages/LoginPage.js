@@ -49,27 +49,15 @@ export default function LoginPage() {
       let errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại!';
       
       if (error.response?.status === 401) {
-        const detail = error.response?.data?.detail;
-        errorMessage = typeof detail === 'string' ? detail : 'Email hoặc mật khẩu không đúng!';
+        errorMessage = getErrorMessage(error, 'Email hoặc mật khẩu không đúng!');
       } else if (error.response?.status === 422) {
-        // Validation error - extract first error message
-        const detail = error.response?.data?.detail;
-        if (Array.isArray(detail) && detail.length > 0) {
-          errorMessage = detail[0].msg || 'Dữ liệu không hợp lệ!';
-        } else if (typeof detail === 'string') {
-          errorMessage = detail;
-        } else {
-          errorMessage = 'Dữ liệu không hợp lệ!';
-        }
+        errorMessage = getErrorMessage(error, 'Dữ liệu không hợp lệ!');
       } else if (error.response?.status === 500) {
         errorMessage = 'Lỗi hệ thống. Vui lòng thử lại sau!';
       } else if (error.code === 'ERR_NETWORK') {
         errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng!';
       } else {
-        const detail = error.response?.data?.detail;
-        if (typeof detail === 'string') {
-          errorMessage = detail;
-        }
+        errorMessage = getErrorMessage(error, 'Đăng nhập thất bại. Vui lòng thử lại!');
       }
       
       toast.error(errorMessage);
