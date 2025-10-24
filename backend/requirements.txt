@@ -12,3 +12,4 @@ requests==2.31.0
 emergentintegrations
 openai>=1.0.0
 annotated-doc==0.0.2
+httpx==0.28.1
