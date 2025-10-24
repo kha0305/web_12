@@ -131,6 +131,25 @@
 
 ---
 
+## 🔄 LƯU Ý QUAN TRỌNG:
+
+**NGÀY 24/10/2025 - ĐÃ TẠO LẠI TẤT CẢ TÀI KHOẢN**
+
+Do database bị reset, tất cả tài khoản đã được tạo lại và **ĐÃ KIỂM TRA HOẠT ĐỘNG 100%**:
+
+✅ **Admin**: admin@medischedule.com / admin123 - HOẠT ĐỘNG
+✅ **Department Head**: departmenthead@test.com / dept123 - HOẠT ĐỘNG  
+✅ **Doctor**: doctor1@test.com / doctor123 - HOẠT ĐỘNG
+✅ **Patient**: patient1@test.com / patient123 - HOẠT ĐỘNG
+
+### Thêm tài khoản mẫu:
+- **Patient 2**: patient2@test.com / patient123
+- **Patient 3**: patient3@test.com / patient123
+- **Doctor 2**: doctor2@test.com / doctor123
+- **Doctor 3**: doctor3@test.com / doctor123
+
+---
+
 **Ngày tạo**: 24/10/2025  
-**Phiên bản**: 2.0  
-**Trạng thái**: Đã test và hoạt động
+**Phiên bản**: 3.0 (Đã tạo lại tất cả tài khoản)
+**Trạng thái**: ✅ Đã test và hoạt động 100%
