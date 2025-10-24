@@ -105,7 +105,8 @@ async def create_sample_data():
         },
         {
             "email": "doctor2@test.com",
-            "password": "doctor123",
+            "username": "doctor2",
+            "password": "Doctor@123",
             "full_name": "BS. Hoàng Thị E",
             "phone": "0905678901",
             "specialty": "Nhi khoa",
@@ -115,7 +116,8 @@ async def create_sample_data():
         },
         {
             "email": "doctor3@test.com",
-            "password": "doctor123",
+            "username": "doctor3",
+            "password": "Doctor@123",
             "full_name": "BS. Võ Văn F",
             "phone": "0906789012",
             "specialty": "Nội khoa",
@@ -138,6 +140,7 @@ async def create_sample_data():
             user_data = {
                 "id": user_id,
                 "email": doctor["email"],
+                "username": doctor["username"],
                 "password": pwd_context.hash(doctor["password"]),
                 "full_name": doctor["full_name"],
                 "role": "doctor",
@@ -163,7 +166,8 @@ async def create_sample_data():
     # Create sample department head
     dept_head_data = {
         "email": "departmenthead@test.com",
-        "password": "dept123",
+        "username": "dephead",
+        "password": "Dept@123",
         "full_name": "Trưởng khoa Nguyễn Văn G",
         "phone": "0907890123"
     }
@@ -173,6 +177,7 @@ async def create_sample_data():
         user_data = {
             "id": str(uuid.uuid4()),
             "email": dept_head_data["email"],
+            "username": dept_head_data["username"],
             "password": pwd_context.hash(dept_head_data["password"]),
             "full_name": dept_head_data["full_name"],
             "role": "department_head",
