@@ -397,10 +397,15 @@ class ChatMessageCreate(BaseModel):
 # Auth Routes
 @api_router.post("/auth/register")
 async def register(user_data: UserCreate):
-    # Check if user exists
+    # Check if email exists
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="Email đã được đăng ký")
+    
+    # Check if username exists
+    existing_username = await db.users.find_one({"username": user_data.username})
+    if existing_username:
+        raise HTTPException(status_code=400, detail="Tên đăng nhập đã được sử dụng")
     
     # Hash password
     hashed_password = hash_password(user_data.password)
@@ -408,7 +413,11 @@ async def register(user_data: UserCreate):
     # Create user
     user = User(
         email=user_data.email,
+        username=user_data.username,
         full_name=user_data.full_name,
+        phone=user_data.phone,
+        date_of_birth=user_data.date_of_birth,
+        address=user_data.address,
         role=user_data.role
     )
     
