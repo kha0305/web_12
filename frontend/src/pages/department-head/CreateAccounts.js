@@ -87,7 +87,8 @@ export default function CreateAccounts() {
         consultation_fee: ''
       });
     } catch (error) {
-      toast.error(error.response?.data?.detail || t('accountCreatedError'));
+      const errorMessage = getErrorMessage(error, t('accountCreatedError'));
+      toast.error(errorMessage);
     }
   };
 
