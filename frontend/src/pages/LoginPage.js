@@ -44,7 +44,16 @@ export default function LoginPage() {
       else if (user.role === 'department_head') navigate('/department-head/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Đăng nhập thất bại');
+      // Handle different error cases
+      if (error.response?.status === 401) {
+        toast.error(error.response?.data?.detail || 'Email hoặc mật khẩu không đúng!');
+      } else if (error.response?.status === 500) {
+        toast.error('Lỗi hệ thống. Vui lòng thử lại sau!');
+      } else if (error.code === 'ERR_NETWORK') {
+        toast.error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng!');
+      } else {
+        toast.error(error.response?.data?.detail || 'Đăng nhập thất bại. Vui lòng thử lại!');
+      }
     } finally {
       setLoading(false);
     }
