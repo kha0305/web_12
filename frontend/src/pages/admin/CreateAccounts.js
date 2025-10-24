@@ -91,7 +91,8 @@ export default function CreateAccounts() {
       toast.success(`${t('createSuccess')} ${getRoleName(selectedRole)}!`);
       resetForm();
     } catch (error) {
-      toast.error(error.response?.data?.detail || t('createError'));
+      const errorMessage = getErrorMessage(error, t('createError'));
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
