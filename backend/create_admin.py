@@ -27,8 +27,12 @@ async def create_admin():
     admin_data = {
         "id": str(uuid.uuid4()),
         "email": "admin@medischedule.com",
-        "password": pwd_context.hash("admin123"),
+        "username": "admin",
+        "password": pwd_context.hash("Admin@123"),
         "full_name": "Root Admin",
+        "phone": "0123456789",
+        "date_of_birth": "1990-01-01",
+        "address": "Admin Office",
         "role": "admin",
         "admin_permissions": {
             "can_manage_doctors": True,
@@ -44,7 +48,8 @@ async def create_admin():
     await db.users.insert_one(admin_data)
     print("Admin created successfully!")
     print("Email: admin@medischedule.com")
-    print("Password: admin123")
+    print("Username: admin")
+    print("Password: Admin@123")
     
     client.close()
 
