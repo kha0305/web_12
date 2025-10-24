@@ -452,12 +452,19 @@ async def register(user_data: UserCreate):
 
 @api_router.post("/auth/login")
 async def login(login_data: UserLogin):
-    user = await db.users.find_one({"email": login_data.email}, {"_id": 0})
+    # Try to find user by email or username
+    user = await db.users.find_one({
+        "$or": [
+            {"email": login_data.login},
+            {"username": login_data.login}
+        ]
+    }, {"_id": 0})
+    
     if not user:
-        raise HTTPException(status_code=401, detail="Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại!")
+        raise HTTPException(status_code=401, detail="Email/Tên đăng nhập hoặc mật khẩu không đúng. Vui lòng kiểm tra lại!")
     
     if not verify_password(login_data.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại!")
+        raise HTTPException(status_code=401, detail="Email/Tên đăng nhập hoặc mật khẩu không đúng. Vui lòng kiểm tra lại!")
     
     token = create_access_token({"sub": user["id"], "role": user["role"]})
     
