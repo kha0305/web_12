@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv('/app/frontend/.env')
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://unedited-web-run.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://clinic-calendar-6.preview.emergentagent.com')
 BASE_URL = f"{BACKEND_URL}/api"
 
 class FocusedAPITester:
