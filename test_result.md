@@ -339,15 +339,18 @@ frontend:
   
   - task: "Department Head Manage Patients UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/department-head/Patients.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created Patients management page with search functionality and delete action. Displays patient info in card grid layout with phone, date of birth, and address."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Department Head Manage Patients UI fully functional! Page displays patients in clean card grid layout. Each card shows patient name, email, phone, date of birth, and address. Search functionality working properly. Delete action button available. Statistics show total patients count. Card design is user-friendly and responsive. Fixed react-hot-toast import issue."
   
   - task: "Department Head Routing"
     implemented: true
