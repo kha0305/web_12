@@ -95,6 +95,7 @@ async def startup_db_client():
         
         # Create indexes if they don't exist
         await db.users.create_index("email", unique=True)
+        await db.users.create_index("username", unique=True)
         await db.users.create_index("id", unique=True)
     except Exception as e:
         logger.error(f"Failed to connect to MongoDB: {e}")
