@@ -8,6 +8,7 @@ import { AuthContext, API } from '@/App';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { Calendar, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { getErrorMessage } from '@/utils/errorHandler';
 
 export default function LoginPage() {
   const navigate = useNavigate();
