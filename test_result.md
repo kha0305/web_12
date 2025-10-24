@@ -435,15 +435,18 @@ frontend:
   
   - task: "Admin Create Admin UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/admin/Admins.js, frontend/src/App.js, frontend/src/components/Layout.js, frontend/src/pages/admin/Dashboard.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Completed admin management UI implementation with full features: create admin form with permissions, admin list with edit/delete capabilities, integrated into routing and navigation. Only admins with can_create_admins permission can access this feature."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Admin Create Admin UI fully functional! Successfully tested with admin@medischedule.com/admin123. Admin dashboard loads with all 5 cards including 'Quản lý Admin' card. All admin management features accessible. Navigation and routing working correctly. Permission-based access control functioning properly."
   
   - task: "Admin Create User Accounts (Patient, Doctor, Department Head)"
     implemented: true
