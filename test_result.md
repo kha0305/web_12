@@ -324,15 +324,18 @@ frontend:
   
   - task: "Department Head Manage Doctors UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/department-head/Doctors.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created Doctors management page with search, filter by status, approve/reject/delete actions. Displays doctor info with specialty, experience, fee, and status. Includes statistics cards."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Department Head Manage Doctors UI fully functional! Page displays doctor list with complete information (name, email, specialty, experience, consultation fee, status). Search functionality and status filter working. Statistics cards show total doctors (5), approved (4), pending (1). Approve/reject/delete action buttons visible. Table layout is clean and responsive. Fixed react-hot-toast import issue."
   
   - task: "Department Head Manage Patients UI"
     implemented: true
