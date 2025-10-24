@@ -38,7 +38,17 @@ export default function RegisterPage() {
       else if (user.role === 'department_head') navigate('/department-head/dashboard');
       else if (user.role === 'admin') navigate('/admin/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Đăng ký thất bại');
+      let errorMessage = 'Đăng ký thất bại';
+      const detail = error.response?.data?.detail;
+      
+      if (Array.isArray(detail) && detail.length > 0) {
+        // Validation error - extract first error message
+        errorMessage = detail[0].msg || errorMessage;
+      } else if (typeof detail === 'string') {
+        errorMessage = detail;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
