@@ -239,15 +239,23 @@ class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: str
+    username: str
     full_name: str
+    phone: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    address: Optional[str] = None
     role: str = UserRole.PATIENT
     admin_permissions: Optional[dict] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
     email: str
+    username: str
     password: str
     full_name: str
+    phone: str
+    date_of_birth: Optional[str] = None
+    address: Optional[str] = None
     role: str = UserRole.PATIENT
     admin_permissions: Optional[dict] = None
     
@@ -257,6 +265,46 @@ class UserCreate(BaseModel):
         if '@' not in v or '.' not in v.split('@')[1]:
             raise ValueError('Invalid email format')
         return v.lower()
+    
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v):
+        import re
+        if not v or len(v) < 3:
+            raise ValueError('Username phải có ít nhất 3 ký tự')
+        if not re.match(r'^[a-zA-Z0-9_]+$', v):
+            raise ValueError('Username chỉ được chứa chữ cái, số và dấu gạch dưới')
+        return v.lower()
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v):
+        import re
+        if len(v) < 8 or len(v) > 20:
+            raise ValueError('Mật khẩu phải có độ dài từ 8-20 ký tự')
+        if ' ' in v:
+            raise ValueError('Mật khẩu không được chứa khoảng trắng')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ thường')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ hoa')
+        if not re.search(r'\d', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ số')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 ký tự đặc biệt')
+        return v
+    
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, v):
+        import re
+        if not v:
+            raise ValueError('Số điện thoại là bắt buộc')
+        # Remove spaces and dashes
+        phone = re.sub(r'[\s\-]', '', v)
+        if not re.match(r'^[0-9]{10,11}$', phone):
+            raise ValueError('Số điện thoại phải có 10-11 chữ số')
+        return phone
 
 class UserLogin(BaseModel):
     email: str
