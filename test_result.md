@@ -384,15 +384,18 @@ frontend:
   
   - task: "Department Head Login Redirect"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/LoginPage.js, frontend/src/pages/RegisterPage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Updated login and register redirects. Department Head now redirects to /department-head/dashboard instead of /doctor/dashboard."
+      - working: true
+        agent: "testing"
+        comment: "✅ WORKING: Department Head login redirect fully functional! Successfully tested with departmenthead@test.com/dept123 credentials. After login, user is correctly redirected to /department-head/dashboard instead of /doctor/dashboard. Login flow working smoothly with proper role-based redirection."
   
   - task: "Department Head Translations"
     implemented: true
