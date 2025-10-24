@@ -79,6 +79,8 @@ export default function LoginPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
                 className="mt-2"
+                autoComplete="email"
+                placeholder="Nhập email của bạn"
               />
             </div>
 
@@ -93,6 +95,8 @@ export default function LoginPage() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                   className="pr-10"
+                  autoComplete="current-password"
+                  placeholder="Nhập mật khẩu"
                 />
                 <button
                   type="button"
