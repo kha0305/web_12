@@ -45,7 +45,8 @@ async def create_sample_data():
     patients_data = [
         {
             "email": "patient1@test.com",
-            "password": "patient123",
+            "username": "patient1",
+            "password": "Patient@123",
             "full_name": "Nguyễn Văn A",
             "phone": "0901234567",
             "date_of_birth": "1990-01-15",
@@ -53,7 +54,8 @@ async def create_sample_data():
         },
         {
             "email": "patient2@test.com",
-            "password": "patient123",
+            "username": "patient2",
+            "password": "Patient@123",
             "full_name": "Trần Thị B",
             "phone": "0902345678",
             "date_of_birth": "1985-05-20",
@@ -61,7 +63,8 @@ async def create_sample_data():
         },
         {
             "email": "patient3@test.com",
-            "password": "patient123",
+            "username": "patient3",
+            "password": "Patient@123",
             "full_name": "Lê Văn C",
             "phone": "0903456789",
             "date_of_birth": "1995-08-10",
@@ -75,6 +78,7 @@ async def create_sample_data():
             user_data = {
                 "id": str(uuid.uuid4()),
                 "email": patient["email"],
+                "username": patient["username"],
                 "password": pwd_context.hash(patient["password"]),
                 "full_name": patient["full_name"],
                 "role": "patient",
@@ -90,7 +94,8 @@ async def create_sample_data():
     doctors_data = [
         {
             "email": "doctor1@test.com",
-            "password": "doctor123",
+            "username": "doctor1",
+            "password": "Doctor@123",
             "full_name": "BS. Phạm Minh D",
             "phone": "0904567890",
             "specialty": "Tim mạch",
