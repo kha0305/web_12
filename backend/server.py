@@ -479,6 +479,116 @@ async def login(login_data: UserLogin):
 async def get_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
+# Profile Update Models
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    address: Optional[str] = None
+    
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, v):
+        if v is None:
+            return v
+        import re
+        # Remove spaces and dashes
+        phone = re.sub(r'[\s\-]', '', v)
+        if not re.match(r'^[0-9]{10,11}$', phone):
+            raise ValueError('Số điện thoại phải có 10-11 chữ số')
+        return phone
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+    
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, v):
+        import re
+        if len(v) < 8 or len(v) > 20:
+            raise ValueError('Mật khẩu phải có độ dài từ 8-20 ký tự')
+        if ' ' in v:
+            raise ValueError('Mật khẩu không được chứa khoảng trắng')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ thường')
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ hoa')
+        if not re.search(r'\d', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 chữ số')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+            raise ValueError('Mật khẩu phải có ít nhất 1 ký tự đặc biệt')
+        return v
+
+# Update profile endpoint - works for all roles
+@api_router.put("/profile/update")
+async def update_profile(
+    profile_data: UserProfileUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update user profile information - works for all roles"""
+    user_id = current_user["id"]
+    
+    # Prepare update data
+    update_data = {}
+    if profile_data.full_name is not None:
+        update_data["full_name"] = profile_data.full_name
+    if profile_data.phone is not None:
+        update_data["phone"] = profile_data.phone
+    if profile_data.date_of_birth is not None:
+        update_data["date_of_birth"] = profile_data.date_of_birth
+    if profile_data.address is not None:
+        update_data["address"] = profile_data.address
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Không có thông tin nào để cập nhật")
+    
+    # Update user
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+    
+    # Get updated user
+    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    
+    return {
+        "message": "Cập nhật thông tin thành công",
+        "user": updated_user
+    }
+
+# Change password endpoint - works for all roles
+@api_router.post("/profile/change-password")
+async def change_password(
+    password_data: PasswordChangeRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Change user password - works for all roles"""
+    user_id = current_user["id"]
+    
+    # Get user with password
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user["password"]):
+        raise HTTPException(status_code=400, detail="Mật khẩu hiện tại không đúng")
+    
+    # Hash new password
+    new_hashed_password = hash_password(password_data.new_password)
+    
+    # Update password
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"password": new_hashed_password}}
+    )
+    
+    return {"message": "Đổi mật khẩu thành công"}
+
 class ForgotPasswordRequest(BaseModel):
     email: str
     
