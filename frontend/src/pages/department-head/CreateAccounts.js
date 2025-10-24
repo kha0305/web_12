@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { UserPlus, User, Stethoscope } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { getErrorMessage } from '@/utils/errorHandler';
 
 const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
