@@ -45,15 +45,33 @@ export default function LoginPage() {
       else if (user.role === 'admin') navigate('/admin/dashboard');
     } catch (error) {
       // Handle different error cases
+      let errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại!';
+      
       if (error.response?.status === 401) {
-        toast.error(error.response?.data?.detail || 'Email hoặc mật khẩu không đúng!');
+        const detail = error.response?.data?.detail;
+        errorMessage = typeof detail === 'string' ? detail : 'Email hoặc mật khẩu không đúng!';
+      } else if (error.response?.status === 422) {
+        // Validation error - extract first error message
+        const detail = error.response?.data?.detail;
+        if (Array.isArray(detail) && detail.length > 0) {
+          errorMessage = detail[0].msg || 'Dữ liệu không hợp lệ!';
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else {
+          errorMessage = 'Dữ liệu không hợp lệ!';
+        }
       } else if (error.response?.status === 500) {
-        toast.error('Lỗi hệ thống. Vui lòng thử lại sau!');
+        errorMessage = 'Lỗi hệ thống. Vui lòng thử lại sau!';
       } else if (error.code === 'ERR_NETWORK') {
-        toast.error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng!');
+        errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng!';
       } else {
-        toast.error(error.response?.data?.detail || 'Đăng nhập thất bại. Vui lòng thử lại!');
+        const detail = error.response?.data?.detail;
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
       }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
