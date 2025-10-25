@@ -95,7 +95,7 @@ async def create_sample_data():
         {
             "email": "doctor1@test.com",
             "username": "doctor1",
-            "password": "Doctor@123",
+            "password": "123456",
             "full_name": "BS. Phạm Minh D",
             "phone": "0904567890",
             "specialty": "Tim mạch",
@@ -106,7 +106,7 @@ async def create_sample_data():
         {
             "email": "doctor2@test.com",
             "username": "doctor2",
-            "password": "Doctor@123",
+            "password": "123456",
             "full_name": "BS. Hoàng Thị E",
             "phone": "0905678901",
             "specialty": "Nhi khoa",
@@ -117,7 +117,7 @@ async def create_sample_data():
         {
             "email": "doctor3@test.com",
             "username": "doctor3",
-            "password": "Doctor@123",
+            "password": "123456",
             "full_name": "BS. Võ Văn F",
             "phone": "0906789012",
             "specialty": "Nội khoa",
