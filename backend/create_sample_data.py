@@ -46,7 +46,7 @@ async def create_sample_data():
         {
             "email": "patient1@test.com",
             "username": "patient1",
-            "password": "Patient@123",
+            "password": "123456",
             "full_name": "Nguyễn Văn A",
             "phone": "0901234567",
             "date_of_birth": "1990-01-15",
@@ -55,7 +55,7 @@ async def create_sample_data():
         {
             "email": "patient2@test.com",
             "username": "patient2",
-            "password": "Patient@123",
+            "password": "123456",
             "full_name": "Trần Thị B",
             "phone": "0902345678",
             "date_of_birth": "1985-05-20",
@@ -64,7 +64,7 @@ async def create_sample_data():
         {
             "email": "patient3@test.com",
             "username": "patient3",
-            "password": "Patient@123",
+            "password": "123456",
             "full_name": "Lê Văn C",
             "phone": "0903456789",
             "date_of_birth": "1995-08-10",
